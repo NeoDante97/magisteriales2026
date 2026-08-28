@@ -367,6 +367,32 @@
             </div>
 
             <div class="form-group-custom">
+                <label class="form-label">Deportes a Participar <span class="text-danger">*</span></label>
+                <div class="d-flex flex-wrap gap-3 mt-1 p-3" style="background: #f8fbff; border: 2px solid #e0e0e0; border-radius: 12px;">
+                    <div class="form-check custom-checkbox">
+                        <input class="form-check-input" type="checkbox" name="deportes" value="FUTSAL VARONES" id="dep1">
+                        <label class="form-check-label" for="dep1">FUTSAL VARONES</label>
+                    </div>
+                    <div class="form-check custom-checkbox">
+                        <input class="form-check-input" type="checkbox" name="deportes" value="VÓLEY" id="dep2">
+                        <label class="form-check-label" for="dep2">VÓLEY</label>
+                    </div>
+                    <div class="form-check custom-checkbox">
+                        <input class="form-check-input" type="checkbox" name="deportes" value="FUTSAL MUJERES" id="dep3">
+                        <label class="form-check-label" for="dep3">FUTSAL MUJERES</label>
+                    </div>
+                    <div class="form-check custom-checkbox">
+                        <input class="form-check-input" type="checkbox" name="deportes" value="VÓLEY MIXTO" id="dep4">
+                        <label class="form-check-label" for="dep4">VÓLEY MIXTO</label>
+                    </div>
+                    <div class="form-check custom-checkbox">
+                        <input class="form-check-input" type="checkbox" name="deportes" value="BÁSQUET" id="dep5">
+                        <label class="form-check-label" for="dep5">BÁSQUET</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group-custom">
                 <label for="archivo" class="form-label">Resolución / Documento (PDF) <span class="text-danger">*</span></label>
                 <div class="file-upload-wrapper">
                     <input type="file" class="file-upload-input" id="archivo" name="archivo" accept="application/pdf" required>
@@ -400,7 +426,7 @@
             const nombresGroup = document.getElementById('nombres-group');
 
             if (dni.length === 8) {
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbxbpbdwMpEr_ztzfSJOaJeKh6AzNWysxr2Z3lc_PYBcNFmZnbif9_k1lMxzB1AwOdD3/exec';
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbxkc7P3zzbykLvHINIjAUtEO5gCQVp3dpwhprt26gavahSqsx5VdmQ-99gk4-JSJ1m4/exec';
                 
                 // Usamos nuestro propio backend (Apps Script) como proxy para evitar errores de CORS
                 fetch(scriptURL, {
@@ -452,6 +478,18 @@
                 return;
             }
 
+            const deportesCheckboxes = document.querySelectorAll('input[name="deportes"]:checked');
+            if (deportesCheckboxes.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Faltan Deportes',
+                    text: 'Debes seleccionar al menos un deporte en el que vas a participar.',
+                    confirmButtonColor: '#ffaa00'
+                });
+                return;
+            }
+            const deportesSeleccionados = Array.from(deportesCheckboxes).map(cb => cb.value).join(', ');
+
             if (!file) {
                 Swal.fire({
                     icon: 'warning',
@@ -474,7 +512,7 @@
 
             const loadingOverlay = document.getElementById('loading');
             const loadingText = document.getElementById('loading-text-msg');
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxbpbdwMpEr_ztzfSJOaJeKh6AzNWysxr2Z3lc_PYBcNFmZnbif9_k1lMxzB1AwOdD3/exec';
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxkc7P3zzbykLvHINIjAUtEO5gCQVp3dpwhprt26gavahSqsx5VdmQ-99gk4-JSJ1m4/exec';
 
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -483,6 +521,7 @@
                     dni: document.getElementById('dni').value,
                     nombres: document.getElementById('nombres').value,
                     institucion: document.getElementById('institucion').value,
+                    deportes: deportesSeleccionados,
                     archivoBase64: base64Data,
                     nombreArchivo: file.name,
                     mimeType: file.type
