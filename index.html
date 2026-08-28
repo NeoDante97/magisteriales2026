@@ -393,6 +393,14 @@
             </div>
 
             <div class="form-group-custom">
+                <label for="foto" class="form-label">Foto para Carnet <span class="text-danger">*</span></label>
+                <div class="file-upload-wrapper">
+                    <input type="file" class="file-upload-input" id="foto" name="foto" accept="image/*" required>
+                    <span class="file-upload-text" id="foto-name-display"><i class="fas fa-camera"></i> Tomar o Subir Foto</span>
+                </div>
+            </div>
+
+            <div class="form-group-custom">
                 <label for="archivo" class="form-label">Resolución / Documento (PDF) <span class="text-danger">*</span></label>
                 <div class="file-upload-wrapper">
                     <input type="file" class="file-upload-input" id="archivo" name="archivo" accept="application/pdf" required>
@@ -407,6 +415,16 @@
     </div>
 
     <script>
+        document.getElementById('foto').addEventListener('change', function(e) {
+            const display = document.getElementById('foto-name-display');
+            var fileName = e.target.files[0] ? e.target.files[0].name : '<i class="fas fa-camera"></i> Tomar o Subir Foto';
+            if (e.target.files[0]) {
+                display.innerHTML = '<i class="fas fa-image text-success" style="animation: bounce 0.5s;"></i> ' + fileName;
+            } else {
+                display.innerHTML = fileName;
+            }
+        });
+
         document.getElementById('archivo').addEventListener('change', function(e) {
             const display = document.getElementById('file-name-display');
             var fileName = e.target.files[0] ? e.target.files[0].name : '<i class="fas fa-file-upload"></i> Subir archivo PDF';
@@ -426,7 +444,7 @@
             const nombresGroup = document.getElementById('nombres-group');
 
             if (dni.length === 8) {
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbxkc7P3zzbykLvHINIjAUtEO5gCQVp3dpwhprt26gavahSqsx5VdmQ-99gk4-JSJ1m4/exec';
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbz_Ibfi2WfKDFjCmsnZnrPHqermUSpzXNPvWhSN__eGH8A-J5PIAZWa5uGHmudZ7Icw/exec';
                 
                 // Usamos nuestro propio backend (Apps Script) como proxy para evitar errores de CORS
                 fetch(scriptURL, {
@@ -467,6 +485,8 @@
             const dni = document.getElementById('dni').value;
             const fileInput = document.getElementById('archivo');
             const file = fileInput.files[0];
+            const fotoInput = document.getElementById('foto');
+            const foto = fotoInput.files[0];
 
             if (dni.length !== 8) {
                 Swal.fire({
@@ -490,6 +510,25 @@
             }
             const deportesSeleccionados = Array.from(deportesCheckboxes).map(cb => cb.value).join(', ');
 
+            if (!foto) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Falta Foto',
+                    text: 'Es obligatorio tomarte o adjuntar una foto para tu carnet.',
+                    confirmButtonColor: '#ffaa00'
+                });
+                return;
+            }
+            if(!foto.type.startsWith("image/")) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Formato Inválido',
+                    text: 'El archivo de foto debe ser una imagen.',
+                    confirmButtonColor: '#d33'
+                });
+                return;
+            }
+
             if (!file) {
                 Swal.fire({
                     icon: 'warning',
@@ -512,19 +551,29 @@
 
             const loadingOverlay = document.getElementById('loading');
             const loadingText = document.getElementById('loading-text-msg');
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxkc7P3zzbykLvHINIjAUtEO5gCQVp3dpwhprt26gavahSqsx5VdmQ-99gk4-JSJ1m4/exec';
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbz_Ibfi2WfKDFjCmsnZnrPHqermUSpzXNPvWhSN__eGH8A-J5PIAZWa5uGHmudZ7Icw/exec';
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const base64Data = event.target.result;
+            const readFile = (f) => new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(f);
+            });
+
+            Promise.all([readFile(file), readFile(foto)]).then(results => {
+                const base64DataPdf = results[0];
+                const base64DataFoto = results[1];
+
                 const payload = {
                     dni: document.getElementById('dni').value,
                     nombres: document.getElementById('nombres').value,
                     institucion: document.getElementById('institucion').value,
                     deportes: deportesSeleccionados,
-                    archivoBase64: base64Data,
+                    archivoBase64: base64DataPdf,
                     nombreArchivo: file.name,
-                    mimeType: file.type
+                    mimeType: file.type,
+                    fotoBase64: base64DataFoto,
+                    nombreFoto: foto.name,
+                    mimeTypeFoto: foto.type
                 };
 
                 // Función recursiva para enviar datos (con opción a actualizar)
@@ -556,7 +605,7 @@
                                 icon: 'success',
                                 title: actionType === 'update' ? '¡ACTUALIZACIÓN EXITOSA!' : '¡INSCRIPCIÓN EXITOSA!',
                                 html: actionType === 'update' 
-                                      ? 'Se han reemplazado tus datos y tu archivo correctamente.' 
+                                      ? 'Se han reemplazado tus datos y tus archivos correctamente.' 
                                       : 'Tus datos se han registrado correctamente.<br><b>¡Bienvenido a los Juegos Magisteriales 2026!</b>',
                                 confirmButtonColor: '#00c853',
                                 confirmButtonText: 'Aceptar',
@@ -565,13 +614,14 @@
                             
                             document.getElementById('registroForm').reset();
                             document.getElementById('file-name-display').innerHTML = '<i class="fas fa-file-upload"></i> Subir archivo PDF';
+                            document.getElementById('foto-name-display').innerHTML = '<i class="fas fa-camera"></i> Tomar o Subir Foto';
                         
                         } else if (data.status === 'duplicate') {
                             // DNI DUPLICADO - MOSTRAR OPCIÓN DE ACTUALIZAR
                             Swal.fire({
                                 icon: 'warning',
                                 title: 'DNI Registrado',
-                                text: data.message + ' ¿Deseas actualizar tus datos y reemplazar el archivo subido anteriormente?',
+                                text: data.message + ' ¿Deseas actualizar tus datos y reemplazar los archivos subidos anteriormente?',
                                 showCancelButton: true,
                                 confirmButtonText: '<i class="fas fa-sync-alt"></i> Sí, actualizar',
                                 cancelButtonText: 'Cancelar',
@@ -608,10 +658,7 @@
 
                 // Iniciar primer envío como 'register'
                 sendToServer('register');
-            };
-            
-            reader.readAsDataURL(file);
-        });
+            });
     </script>
 </body>
 </html>
