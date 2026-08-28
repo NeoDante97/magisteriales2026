@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juegos Magisteriales 2026 - Registro</title>
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #0044cc;
+            --secondary-color: #ffaa00;
+            --success-color: #00c853;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.96);
+            max-width: 550px;
+            width: 100%;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+            animation: slideUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 5px;
+            animation: fadeIn 1s ease-out 0.5s forwards;
+            opacity: 0;
+        }
+
+        .header-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 35px;
+            animation: fadeIn 1s ease-out 0.7s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .form-group-custom {
+            margin-bottom: 22px;
+            position: relative;
+            animation: fadeIn 1s ease-out 0.9s forwards;
+            opacity: 0;
+        }
+        
+        .form-group-custom:nth-child(2) { animation-delay: 1.1s; }
+        .form-group-custom:nth-child(3) { animation-delay: 1.3s; }
+        .form-group-custom:nth-child(4) { animation-delay: 1.5s; }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 42px;
+            color: #999;
+            transition: 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .form-control {
+            padding-left: 48px;
+            height: 52px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+            box-shadow: none !important;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(0, 68, 204, 0.15) !important;
+            background-color: #f8fbff;
+        }
+
+        .form-control:focus + .input-icon, .form-control:not(:placeholder-shown) + .input-icon {
+            color: var(--primary-color);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .btn-register {
+            background: linear-gradient(135deg, var(--primary-color), #0066ff);
+            border: none;
+            height: 55px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 8px 20px rgba(0, 102, 255, 0.3);
+            animation: fadeIn 1s ease-out 1.7s forwards;
+            opacity: 0;
+            margin-top: 15px;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0, 102, 255, 0.5);
+            background: linear-gradient(135deg, #003399, #0055cc);
+            color: white;
+        }
+
+        .btn-register:active {
+            transform: translateY(1px);
+        }
+
+        /* Custom File Input */
+        .file-upload-wrapper {
+            position: relative;
+            width: 100%;
+            height: 55px;
+            border: 2px dashed #b0b0b0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fafafa;
+            transition: 0.3s;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .file-upload-wrapper:hover {
+            border-color: var(--primary-color);
+            background: #f0f6ff;
+            border-style: solid;
+        }
+
+        .file-upload-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-upload-text {
+            color: #555;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 15px;
+        }
+
+        .file-upload-text i {
+            margin-right: 10px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        /* Loading Overlay Custom */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 32, 39, 0.95);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            backdrop-filter: blur(8px);
+        }
+
+        .spinner-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 30px;
+        }
+
+        .loader-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 5px solid transparent;
+            border-top-color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+        
+        .loader-ring:nth-child(2) {
+            width: 70px;
+            height: 70px;
+            top: 15px;
+            left: 15px;
+            border-top-color: var(--secondary-color);
+            border-left-color: var(--secondary-color);
+            animation: spin 1s linear infinite reverse;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #fff, #888, #fff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmer 2s infinite linear;
+            background-size: 200% auto;
+        }
+
+        @keyframes shimmer {
+            to { background-position: 200% center; }
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 25px;
+            animation: fadeInDown 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            opacity: 0;
+        }
+        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .logo-icon {
+            font-size: 3.5rem;
+            color: var(--secondary-color);
+            background: linear-gradient(135deg, rgba(255, 170, 0, 0.15), rgba(255, 170, 0, 0.05));
+            width: 90px;
+            height: 90px;
+            line-height: 90px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 5px 15px rgba(255, 170, 0, 0.2);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="loading-overlay" id="loading">
+        <div class="spinner-wrapper">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+        </div>
+        <div class="loading-text" id="loading-text-msg">Validando...</div>
+    </div>
+
+    <div class="form-container">
+        <div class="logo-container">
+            <i class="fas fa-medal logo-icon"></i>
+        </div>
+        <h2 class="text-center header-title">Juegos Magisteriales 2026</h2>
+        <h5 class="text-center header-subtitle">Inscripción Oficial</h5>
+
+        <!-- HTML form validation: required and pattern -->
+        <form id="registroForm">
+            <div class="form-group-custom">
+                <label for="dni" class="form-label">DNI <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="dni" name="dni" placeholder="Ingresa los 8 dígitos" required pattern="[0-9]{8}" title="El DNI debe contener exactamente 8 números" maxlength="8">
+                <i class="fas fa-id-card input-icon"></i>
+            </div>
+
+            <div id="nombre-mensaje" style="color: var(--success-color); font-weight: 600; font-size: 0.95rem; margin-top: -10px; margin-bottom: 20px; display: none; padding-left: 10px;"></div>
+
+            <div class="form-group-custom" id="nombres-group">
+                <label for="nombres" class="form-label">Nombres y Apellidos <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="nombres" name="nombres" placeholder="Ej. Juan Pérez García" required>
+                <i class="fas fa-user-edit input-icon"></i>
+            </div>
+
+            <div class="form-group-custom">
+                <label for="institucion" class="form-label">Institución Educativa <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="institucion" name="institucion" placeholder="Nombre de tu I.E." required>
+                <i class="fas fa-school input-icon"></i>
+            </div>
+
+            <div class="form-group-custom">
+                <label for="archivo" class="form-label">Resolución / Documento (PDF) <span class="text-danger">*</span></label>
+                <div class="file-upload-wrapper">
+                    <input type="file" class="file-upload-input" id="archivo" name="archivo" accept="application/pdf" required>
+                    <span class="file-upload-text" id="file-name-display"><i class="fas fa-file-upload"></i> Subir archivo PDF</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 btn-register">
+                <i class="fas fa-paper-plane me-2"></i> Confirmar Inscripción
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('archivo').addEventListener('change', function(e) {
+            const display = document.getElementById('file-name-display');
+            var fileName = e.target.files[0] ? e.target.files[0].name : '<i class="fas fa-file-upload"></i> Subir archivo PDF';
+            if (e.target.files[0]) {
+                display.innerHTML = '<i class="fas fa-file-pdf text-danger" style="animation: bounce 0.5s;"></i> ' + fileName;
+            } else {
+                display.innerHTML = fileName;
+            }
+        });
+
+        document.getElementById('dni').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            const dni = this.value;
+            const msgDiv = document.getElementById('nombre-mensaje');
+            const nombresInput = document.getElementById('nombres');
+            const nombresGroup = document.getElementById('nombres-group');
+
+            if (dni.length === 8) {
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbxbpbdwMpEr_ztzfSJOaJeKh6AzNWysxr2Z3lc_PYBcNFmZnbif9_k1lMxzB1AwOdD3/exec';
+                
+                // Usamos nuestro propio backend (Apps Script) como proxy para evitar errores de CORS
+                fetch(scriptURL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'search_dni', dni: dni })
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Error en el servidor');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.status === 'success' && data.nombre) {
+                            msgDiv.style.display = 'block';
+                            msgDiv.style.color = 'var(--success-color)';
+                            msgDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.nombre;
+                            nombresInput.value = data.nombre;
+                            nombresGroup.style.display = 'none';
+                        } else {
+                            throw new Error('Sin datos');
+                        }
+                    })
+                    .catch(error => {
+                        // Falla en silencio: No se muestra mensaje de error
+                        msgDiv.style.display = 'none';
+                        msgDiv.innerHTML = '';
+                        nombresGroup.style.display = 'block';
+                    });
+            } else {
+                msgDiv.style.display = 'none';
+                msgDiv.innerHTML = '';
+                nombresGroup.style.display = 'block';
+            }
+        });
+
+        document.getElementById('registroForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const dni = document.getElementById('dni').value;
+            const fileInput = document.getElementById('archivo');
+            const file = fileInput.files[0];
+
+            if (dni.length !== 8) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'DNI Inválido',
+                    text: 'El DNI debe tener exactamente 8 números.',
+                    confirmButtonColor: '#ffaa00'
+                });
+                return;
+            }
+
+            if (!file) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Falta Documento',
+                    text: 'Es obligatorio adjuntar tu archivo en formato PDF.',
+                    confirmButtonColor: '#ffaa00'
+                });
+                return;
+            }
+            
+            if(file.type !== "application/pdf") {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Formato Inválido',
+                    text: 'Solo se permiten archivos en formato PDF.',
+                    confirmButtonColor: '#d33'
+                });
+                return;
+            }
+
+            const loadingOverlay = document.getElementById('loading');
+            const loadingText = document.getElementById('loading-text-msg');
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxbpbdwMpEr_ztzfSJOaJeKh6AzNWysxr2Z3lc_PYBcNFmZnbif9_k1lMxzB1AwOdD3/exec';
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Data = event.target.result;
+                const payload = {
+                    dni: document.getElementById('dni').value,
+                    nombres: document.getElementById('nombres').value,
+                    institucion: document.getElementById('institucion').value,
+                    archivoBase64: base64Data,
+                    nombreArchivo: file.name,
+                    mimeType: file.type
+                };
+
+                // Función recursiva para enviar datos (con opción a actualizar)
+                function sendToServer(actionType) {
+                    payload.action = actionType;
+                    
+                    loadingText.innerText = actionType === 'update' ? "ACTUALIZANDO DATOS..." : "ENVIANDO REGISTRO...";
+                    loadingOverlay.style.display = 'flex';
+
+                    fetch(scriptURL, {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        loadingOverlay.style.display = 'none';
+
+                        if(data.status === 'success') {
+                            // CONFETTI
+                            var duration = 3000;
+                            var end = Date.now() + duration;
+                            (function frame() {
+                                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#0044cc', '#ffaa00', '#00c853']});
+                                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#0044cc', '#ffaa00', '#00c853']});
+                                if (Date.now() < end) { requestAnimationFrame(frame); }
+                            }());
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: actionType === 'update' ? '¡ACTUALIZACIÓN EXITOSA!' : '¡INSCRIPCIÓN EXITOSA!',
+                                html: actionType === 'update' 
+                                      ? 'Se han reemplazado tus datos y tu archivo correctamente.' 
+                                      : 'Tus datos se han registrado correctamente.<br><b>¡Bienvenido a los Juegos Magisteriales 2026!</b>',
+                                confirmButtonColor: '#00c853',
+                                confirmButtonText: 'Aceptar',
+                                backdrop: `rgba(0,0,0,0.4)`
+                            });
+                            
+                            document.getElementById('registroForm').reset();
+                            document.getElementById('file-name-display').innerHTML = '<i class="fas fa-file-upload"></i> Subir archivo PDF';
+                        
+                        } else if (data.status === 'duplicate') {
+                            // DNI DUPLICADO - MOSTRAR OPCIÓN DE ACTUALIZAR
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'DNI Registrado',
+                                text: data.message + ' ¿Deseas actualizar tus datos y reemplazar el archivo subido anteriormente?',
+                                showCancelButton: true,
+                                confirmButtonText: '<i class="fas fa-sync-alt"></i> Sí, actualizar',
+                                cancelButtonText: 'Cancelar',
+                                confirmButtonColor: '#0044cc',
+                                cancelButtonColor: '#d33',
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    sendToServer('update'); // Enviar nuevamente pero en modo actualización
+                                }
+                            });
+
+                        } else {
+                            // OTRO ERROR
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Registro Denegado',
+                                text: data.message,
+                                confirmButtonColor: '#d33',
+                                confirmButtonText: 'Entendido'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        loadingOverlay.style.display = 'none';
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de Conexión',
+                            text: 'No se pudo contactar con el servidor. Por favor intenta de nuevo.',
+                            confirmButtonColor: '#d33'
+                        });
+                        console.error('Error!', error);
+                    });
+                }
+
+                // Iniciar primer envío como 'register'
+                sendToServer('register');
+            };
+            
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>
