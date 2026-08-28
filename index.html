@@ -519,7 +519,7 @@
                 });
                 return;
             }
-            if(!foto.type.startsWith("image/")) {
+            if (foto.type && !foto.type.startsWith("image/")) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Formato Inválido',
@@ -539,7 +539,7 @@
                 return;
             }
             
-            if(file.type !== "application/pdf") {
+            if (file.type && file.type !== "application/pdf") {
                 Swal.fire({
                     icon: 'error',
                     title: 'Formato Inválido',
@@ -553,11 +553,15 @@
             const loadingText = document.getElementById('loading-text-msg');
             const scriptURL = 'https://script.google.com/macros/s/AKfycbz_Ibfi2WfKDFjCmsnZnrPHqermUSpzXNPvWhSN__eGH8A-J5PIAZWa5uGHmudZ7Icw/exec';
 
-            const readFile = (f) => new Promise((resolve) => {
+            const readFile = (f) => new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject("Error al leer el archivo");
                 reader.readAsDataURL(f);
             });
+
+            loadingText.innerText = "PREPARANDO ARCHIVOS...";
+            loadingOverlay.style.display = 'flex';
 
             Promise.all([readFile(file), readFile(foto)]).then(results => {
                 const base64DataPdf = results[0];
@@ -570,10 +574,10 @@
                     deportes: deportesSeleccionados,
                     archivoBase64: base64DataPdf,
                     nombreArchivo: file.name,
-                    mimeType: file.type,
+                    mimeType: file.type || "application/pdf",
                     fotoBase64: base64DataFoto,
                     nombreFoto: foto.name,
-                    mimeTypeFoto: foto.type
+                    mimeTypeFoto: foto.type || "image/jpeg"
                 };
 
                 // Función recursiva para enviar datos (con opción a actualizar)
@@ -658,6 +662,15 @@
 
                 // Iniciar primer envío como 'register'
                 sendToServer('register');
+            }).catch(err => {
+                loadingOverlay.style.display = 'none';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de Archivos',
+                    text: 'Ocurrió un error al intentar leer los archivos (puede ser por formato o tamaño en móviles). Intenta de nuevo.',
+                    confirmButtonColor: '#d33'
+                });
+                console.error(err);
             });
     </script>
 </body>
