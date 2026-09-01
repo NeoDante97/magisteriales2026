@@ -361,9 +361,37 @@
             </div>
 
             <div class="form-group-custom">
-                <label for="institucion" class="form-label">Institución Educativa <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="institucion" name="institucion" placeholder="Nombre de tu I.E." required>
-                <i class="fas fa-school input-icon"></i>
+                <label for="institucion_select" class="form-label">Institución Educativa <span class="text-danger">*</span></label>
+                <select class="form-control" id="institucion_select" name="institucion" required onchange="toggleInstitucionOtro()" style="appearance: none; -webkit-appearance: none; -moz-appearance: none; cursor: pointer;">
+                    <option value="" disabled selected>Selecciona tu I.E.</option>
+                    <option value="I.E. “PARQUE INDUSTRIAL”">I.E. “PARQUE INDUSTRIAL”</option>
+                    <option value="I.E. “CESAR VALLEJO”">I.E. “CESAR VALLEJO”</option>
+                    <option value="I.E. “SAN ANTONIO DE ABAD” – “QUISTO CENTRAL”">I.E. “SAN ANTONIO DE ABAD” – “QUISTO CENTRAL”</option>
+                    <option value="I.E. “JOSÉ MARÍA ARGUEDAS”">I.E. “JOSÉ MARÍA ARGUEDAS”</option>
+                    <option value="I.E. N° 38990-A “MARAVILLA”">I.E. N° 38990-A “MARAVILLA”</option>
+                    <option value="I.E. ISAAC NEWTON">I.E. ISAAC NEWTON</option>
+                    <option value="I.E. N° 501345 – “CATARATA”">I.E. N° 501345 – “CATARATA”</option>
+                    <option value="I.E. “BARTOLOMÉ HERRERA”">I.E. “BARTOLOMÉ HERRERA”</option>
+                    <option value="I.E. “SIMÓN BOLÍVAR”">I.E. “SIMÓN BOLÍVAR”</option>
+                    <option value="I.E. N° 38968 – “QUISTO CENTRAL”">I.E. N° 38968 – “QUISTO CENTRAL”</option>
+                    <option value="I.E. N° 38709 – “TERESA”">I.E. N° 38709 – “TERESA”</option>
+                    <option value="I.E. DE “NATIVIDAD”">I.E. DE “NATIVIDAD”</option>
+                    <option value="I.E. N° 38990-B “SANKIROSHI”">I.E. N° 38990-B “SANKIROSHI”</option>
+                    <option value="I.E. N° 38824 – “TARANCATO”">I.E. N° 38824 – “TARANCATO”</option>
+                    <option value="I.E. N° 38776 – “OTARI SAN MARTÍN”">I.E. N° 38776 – “OTARI SAN MARTÍN”</option>
+                    <option value="I.E. DE SAN CRISTOBAL">I.E. DE SAN CRISTOBAL</option>
+                    <option value="I.E. “LA VERDAD”">I.E. “LA VERDAD”</option>
+                    <option value="I.E.P. “MARÍA MONTESSORI”">I.E.P. “MARÍA MONTESSORI”</option>
+                    <option value="Otros">Otros...</option>
+                </select>
+                <i class="fas fa-school input-icon" style="z-index: 2; pointer-events: none;"></i>
+                <i class="fas fa-chevron-down" style="position: absolute; right: 15px; top: 44px; color: #999; pointer-events: none; font-size: 0.9rem;"></i>
+            </div>
+
+            <div class="form-group-custom" id="institucion_otro_group" style="display: none; animation-delay: 1.4s;">
+                <label for="institucion_otro" class="form-label">Especificar Institución Educativa <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="institucion_otro" name="institucion_otro" placeholder="Nombre de tu I.E.">
+                <i class="fas fa-edit input-icon"></i>
             </div>
 
             <div class="form-group-custom">
@@ -401,7 +429,7 @@
             </div>
 
             <div class="form-group-custom">
-                <label for="archivo" class="form-label">Resolución / Documento (PDF) <span class="text-danger">*</span></label>
+                <label for="archivo" class="form-label">DNI/RD/TITULO(PDF) <span class="text-danger">*</span></label>
                 <div class="file-upload-wrapper">
                     <input type="file" class="file-upload-input" id="archivo" name="archivo" accept="application/pdf" required>
                     <span class="file-upload-text" id="file-name-display"><i class="fas fa-file-upload"></i> Subir archivo PDF</span>
@@ -539,6 +567,21 @@
             }
         });
 
+        function toggleInstitucionOtro() {
+            var select = document.getElementById('institucion_select');
+            var otroGroup = document.getElementById('institucion_otro_group');
+            var otroInput = document.getElementById('institucion_otro');
+            
+            if (select.value === 'Otros') {
+                otroGroup.style.display = 'block';
+                otroInput.required = true;
+            } else {
+                otroGroup.style.display = 'none';
+                otroInput.required = false;
+                otroInput.value = '';
+            }
+        }
+
         document.getElementById('dni').addEventListener('input', function(e) {
             this.value = this.value.replace(/[^0-9]/g, '');
             
@@ -671,10 +714,14 @@
                 const base64DataPdf = results[0];
                 const base64DataFoto = results[1];
 
+                const institucionSelect = document.getElementById('institucion_select').value;
+                const institucionOtro = document.getElementById('institucion_otro').value;
+                const institucionFinal = institucionSelect === 'Otros' ? institucionOtro : institucionSelect;
+
                 const payload = {
                     dni: document.getElementById('dni').value,
                     nombres: document.getElementById('nombres').value,
-                    institucion: document.getElementById('institucion').value,
+                    institucion: institucionFinal,
                     deportes: deportesSeleccionados,
                     archivoBase64: base64DataPdf,
                     nombreArchivo: file.name,
@@ -723,6 +770,8 @@
                             document.getElementById('registroForm').reset();
                             document.getElementById('file-name-display').innerHTML = '<i class="fas fa-file-upload"></i> Subir archivo PDF';
                             document.getElementById('foto-name-display').innerHTML = '<i class="fas fa-camera"></i> Tomar o Subir Foto';
+                            document.getElementById('institucion_otro_group').style.display = 'none';
+                            document.getElementById('institucion_otro').required = false;
                         
                         } else if (data.status === 'duplicate') {
                             // DNI DUPLICADO - MOSTRAR OPCIÓN DE ACTUALIZAR
