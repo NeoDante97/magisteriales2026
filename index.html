@@ -472,7 +472,7 @@
             Swal.fire({
                 title: 'Tomar Foto',
                 html: `
-                    <video id="videoElement" autoplay playsinline style="width: 100%; max-height: 400px; background: #000; border-radius: 8px;"></video>
+                    <video id="videoElement" autoplay playsinline muted style="width: 100%; max-height: 400px; background: #000; border-radius: 8px;"></video>
                     <canvas id="canvasElement" style="display: none;"></canvas>
                 `,
                 showCancelButton: true,
@@ -484,9 +484,11 @@
                     const video = document.getElementById('videoElement');
                     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+                            .catch(() => navigator.mediaDevices.getUserMedia({ video: true }))
                             .then(function(stream) {
                                 streamVideo = stream;
                                 video.srcObject = stream;
+                                video.play().catch(e => console.log("Play error:", e));
                             })
                             .catch(function(err) {
                                 console.error("Error al acceder a la cámara: ", err);
