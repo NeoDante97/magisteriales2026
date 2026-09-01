@@ -393,9 +393,9 @@
             </div>
 
             <div class="form-group-custom">
-                <label for="foto" class="form-label">Foto para Carnet <span class="text-danger">*</span></label>
-                <div class="file-upload-wrapper">
-                    <input type="file" class="file-upload-input" id="foto" name="foto" accept="image/*" required>
+                <label class="form-label">Foto para Carnet <span class="text-danger">*</span></label>
+                <div class="file-upload-wrapper" onclick="openPhotoModal()">
+                    <input type="file" id="foto" name="foto" accept="image/*" style="display: none;">
                     <span class="file-upload-text" id="foto-name-display"><i class="fas fa-camera"></i> Tomar o Subir Foto</span>
                 </div>
             </div>
@@ -415,11 +415,115 @@
     </div>
 
     <script>
+        function openPhotoModal() {
+            Swal.fire({
+                title: 'Opciones de Foto',
+                text: '¿Cómo deseas subir tu foto para el carnet?',
+                icon: 'question',
+                html: `
+                    <div class="d-flex flex-column gap-3 mt-3">
+                        <button type="button" class="btn btn-outline-primary" onclick="abrirCamaraEstudiante()" style="padding: 12px; font-size: 1.1rem; border-width: 2px;">
+                            <i class="fas fa-camera"></i> Tomar Foto
+                        </button>
+                        <button type="button" class="btn btn-outline-success" onclick="abrirGaleria()" style="padding: 12px; font-size: 1.1rem; border-width: 2px;">
+                            <i class="fas fa-image"></i> Subir de Galería
+                        </button>
+                    </div>
+                `,
+                showConfirmButton: false,
+                showCancelButton: true,
+                cancelButtonText: 'Cancelar',
+                cancelButtonColor: '#d33'
+            });
+        }
+
+        let streamVideo = null;
+
+        function abrirCamaraEstudiante() {
+            Swal.close();
+            Swal.fire({
+                title: 'Tomar Foto',
+                html: `
+                    <video id="videoElement" autoplay playsinline style="width: 100%; max-height: 400px; background: #000; border-radius: 8px;"></video>
+                    <canvas id="canvasElement" style="display: none;"></canvas>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-camera"></i> Capturar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#0044cc',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    const video = document.getElementById('videoElement');
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+                            .then(function(stream) {
+                                streamVideo = stream;
+                                video.srcObject = stream;
+                            })
+                            .catch(function(err) {
+                                console.error("Error al acceder a la cámara: ", err);
+                                Swal.fire('Error', 'No se pudo acceder a la cámara. Revisa los permisos de tu navegador.', 'error');
+                            });
+                    } else {
+                        Swal.fire('Error', 'Tu navegador no soporta el acceso a la cámara.', 'error');
+                    }
+                },
+                willClose: () => {
+                    if (streamVideo) {
+                        streamVideo.getTracks().forEach(track => track.stop());
+                        streamVideo = null;
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const video = document.getElementById('videoElement');
+                    const canvas = document.getElementById('canvasElement');
+                    const context = canvas.getContext('2d');
+                    
+                    canvas.width = video.videoWidth || 640;
+                    canvas.height = video.videoHeight || 480;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                    
+                    const arr = dataUrl.split(',');
+                    const mime = arr[0].match(/:(.*?);/)[1];
+                    const bstr = atob(arr[1]);
+                    let n = bstr.length;
+                    const u8arr = new Uint8Array(n);
+                    while (n--) {
+                        u8arr[n] = bstr.charCodeAt(n);
+                    }
+                    const file = new File([u8arr], "foto_carnet.jpg", { type: mime });
+                    
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    const fotoInput = document.getElementById('foto');
+                    fotoInput.files = dt.files;
+                    fotoInput.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        function abrirGaleria() {
+            Swal.close();
+            const fotoInput = document.getElementById('foto');
+            fotoInput.removeAttribute('capture');
+            fotoInput.click();
+        }
+
         document.getElementById('foto').addEventListener('change', function(e) {
             const display = document.getElementById('foto-name-display');
             var fileName = e.target.files[0] ? e.target.files[0].name : '<i class="fas fa-camera"></i> Tomar o Subir Foto';
             if (e.target.files[0]) {
                 display.innerHTML = '<i class="fas fa-image text-success" style="animation: bounce 0.5s;"></i> ' + fileName;
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Foto Lista',
+                    text: 'La foto se ha cargado correctamente.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } else {
                 display.innerHTML = fileName;
             }
