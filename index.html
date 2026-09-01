@@ -496,6 +496,22 @@
                         Swal.fire('Error', 'Tu navegador no soporta el acceso a la cámara.', 'error');
                     }
                 },
+                preConfirm: () => {
+                    const video = document.getElementById('videoElement');
+                    const canvas = document.getElementById('canvasElement');
+                    
+                    if (!video || video.videoWidth === 0) {
+                        Swal.showValidationMessage('La cámara aún no está lista o no dio permisos.');
+                        return false;
+                    }
+                    
+                    const context = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    return canvas.toDataURL('image/jpeg', 0.9);
+                },
                 willClose: () => {
                     if (streamVideo) {
                         streamVideo.getTracks().forEach(track => track.stop());
@@ -503,16 +519,8 @@
                     }
                 }
             }).then((result) => {
-                if (result.isConfirmed) {
-                    const video = document.getElementById('videoElement');
-                    const canvas = document.getElementById('canvasElement');
-                    const context = canvas.getContext('2d');
-                    
-                    canvas.width = video.videoWidth || 640;
-                    canvas.height = video.videoHeight || 480;
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                if (result.isConfirmed && result.value) {
+                    const dataUrl = result.value;
                     
                     const arr = dataUrl.split(',');
                     const mime = arr[0].match(/:(.*?);/)[1];
