@@ -26,11 +26,40 @@
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
         }
+
+        #view-registro {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 40px);
+            width: 100%;
+        }
+
+        #view-admin {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+        }
+
+        /* Admin CSS */
+        .pdf-page { width: 297mm; min-height: 210mm; padding: 5mm; background: white; display: flex; flex-wrap: wrap; align-content: flex-start; box-sizing: border-box; }
+        .carnet { width: 71.75mm; height: 100mm; margin: 0; padding: 4mm; box-sizing: border-box; border: 1px dashed #ccc; page-break-inside: avoid; position: relative; background: #fff; overflow: hidden; }
+        .carnet-inner { border: 2px solid #0044cc; border-radius: 8px; height: 100%; padding: 5px; text-align: center; position: relative; background: linear-gradient(135deg, #f8fbff, #e6f0ff); }
+        .carnet-header { background: #0044cc; color: white; font-size: 0.65rem; font-weight: bold; padding: 4px; border-radius: 4px; margin-bottom: 5px; text-transform: uppercase; }
+        .carnet-photo { width: 35mm; height: 45mm; object-fit: cover; border: 2px solid #ffaa00; border-radius: 4px; margin: 0 auto 5px auto; display: block; }
+        .carnet-data { font-size: 0.65rem; text-align: left; line-height: 1.1; }
+        .carnet-data strong { color: #0044cc; }
+        .carnet-qr { position: absolute; bottom: 5px; right: 5px; width: 20mm; height: 20mm; background: white; padding: 2px; border-radius: 4px; }
+        #reader { width: 100%; max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .carnet-preview-container { display: none; }
 
         .form-container {
             background: rgba(255, 255, 255, 0.96);
@@ -337,6 +366,7 @@
         <div class="loading-text" id="loading-text-msg">Validando...</div>
     </div>
 
+<div id="view-registro">
     <div class="form-container">
         <div class="logo-container">
             <i class="fas fa-medal logo-icon"></i>
@@ -346,6 +376,7 @@
 
         <!-- HTML form validation: required and pattern -->
         <form id="registroForm">
+            <!-- (Manteniendo todos los form groups) ... pero mejor los dejo intactos en el código y solo reemplazo los bordes -->
             <div class="form-group-custom">
                 <label for="dni" class="form-label">DNI <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="dni" name="dni" placeholder="Ingresa los 8 dígitos" required pattern="[0-9]{8}" title="El DNI debe contener exactamente 8 números" maxlength="8">
@@ -358,6 +389,25 @@
                 <label for="nombres" class="form-label">Nombres y Apellidos <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="nombres" name="nombres" placeholder="Ej. Juan Pérez García" required>
                 <i class="fas fa-user-edit input-icon"></i>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 form-group-custom" style="animation-delay: 1.15s;">
+                    <label for="edad" class="form-label">Edad <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="edad" name="edad" placeholder="Tu edad" min="18" max="100" required>
+                    <i class="fas fa-calendar-alt input-icon"></i>
+                </div>
+                <div class="col-md-6 form-group-custom" style="animation-delay: 1.2s;">
+                    <label for="tipo" class="form-label">Tipo <span class="text-danger">*</span></label>
+                    <select class="form-control" id="tipo" name="tipo" required style="appearance: none; -webkit-appearance: none; cursor: pointer;">
+                        <option value="" disabled selected>Seleccione Tipo</option>
+                        <option value="Docente">Docente</option>
+                        <option value="Auxiliar">Auxiliar</option>
+                        <option value="Adminitrativos_CAS">Administrativos CAS</option>
+                    </select>
+                    <i class="fas fa-briefcase input-icon" style="z-index: 2; pointer-events: none;"></i>
+                    <i class="fas fa-chevron-down" style="position: absolute; right: 25px; top: 44px; color: #999; pointer-events: none; font-size: 0.9rem;"></i>
+                </div>
             </div>
 
             <div class="form-group-custom">
@@ -442,7 +492,132 @@
         </form>
     </div>
 
+</div> <!-- End #view-registro -->
+
+<!-- VIEW ADMIN -->
+<div id="view-admin" style="display: none;" class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h3 class="m-0 text-primary fw-bold"><i class="fas fa-medal text-warning"></i> Admin Juegos 2026</h3>
+        <button type="button" class="btn btn-outline-secondary" onclick="switchView('registro')">
+            <i class="fas fa-arrow-left"></i> Volver al Registro
+        </button>
+    </div>
+
+    <!-- Pestañas -->
+    <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pills-listado-tab" data-bs-toggle="pill" data-bs-target="#pills-listado" type="button" role="tab">
+                <i class="fas fa-users"></i> Listado y Carnets
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pills-escaner-tab" data-bs-toggle="pill" data-bs-target="#pills-escaner" type="button" role="tab">
+                <i class="fas fa-qrcode"></i> Escáner
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="pills-tabContent">
+        
+        <!-- TAB LISTADO -->
+        <div class="tab-pane fade show active" id="pills-listado" role="tabpanel">
+            <div class="card shadow-sm border-0 bg-transparent">
+                <div class="card-body p-0">
+                    <div class="row align-items-end mb-4">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Seleccionar Institución Educativa</label>
+                            <select id="institucionFilter" class="form-select">
+                                <option value="">Cargando instituciones...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                            <button class="btn btn-primary" onclick="cargarDatos()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+                            <button class="btn btn-success" onclick="generarPDF()"><i class="fas fa-file-pdf"></i> Generar Carnets</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle bg-white rounded shadow-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Foto</th>
+                                    <th>DNI</th>
+                                    <th>Nombres</th>
+                                    <th>Institución</th>
+                                    <th>Edad/Tipo</th>
+                                    <th>Deportes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-body">
+                                <tr><td colspan="6" class="text-center py-4">Haz clic en Actualizar para cargar los datos</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB ESCANER -->
+        <div class="tab-pane fade" id="pills-escaner" role="tabpanel">
+            <div class="card shadow-sm border-0 bg-transparent">
+                <div class="card-body text-center p-0">
+                    <h4 class="mb-3">Escáner de Carnet</h4>
+                    <p class="text-muted">Apunta la cámara al código QR del carnet para visualizar la resolución/documento del participante.</p>
+                    
+                    <div id="reader" class="bg-white"></div>
+                    <div id="scan-result" class="mt-4"></div>
+                    
+                    <button class="btn btn-primary mt-3" id="btn-start-scan" onclick="iniciarEscaner()">
+                        <i class="fas fa-camera"></i> Iniciar Cámara
+                    </button>
+                    <button class="btn btn-danger mt-3" id="btn-stop-scan" onclick="detenerEscaner()" style="display: none;">
+                        <i class="fas fa-stop"></i> Detener
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contenedor oculto donde se dibujarán los carnets para el PDF -->
+<div id="pdf-container" class="carnet-preview-container"></div>
+
+<!-- Modal Visor PDF -->
+<div class="modal fade" id="pdfModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-file-pdf"></i> Documento del Participante</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="height: 80vh;">
+                <iframe id="pdfIframe" src="" width="100%" height="100%" style="border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
     <script>
+        // ==========================================
+        // URL GLOBAL DE APPS SCRIPT
+        // ==========================================
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyCvYmH1wmIVv2D85ghBmpS3JPER4_MfWBYbHbym2_RvW0fAE_bDuvTkzP0IKL__FVj/exec';
+
+        let dnisRegistradosGlobal = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'get_dnis_registrados' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    dnisRegistradosGlobal = data.dnis;
+                }
+            }).catch(e => console.log('Error silently loading dnis', e));
+        });
+
         function openPhotoModal() {
             Swal.fire({
                 title: 'Opciones de Foto',
@@ -601,8 +776,16 @@
             const nombresGroup = document.getElementById('nombres-group');
 
             if (dni.length === 8) {
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbz_Ibfi2WfKDFjCmsnZnrPHqermUSpzXNPvWhSN__eGH8A-J5PIAZWa5uGHmudZ7Icw/exec';
-                
+                if (dnisRegistradosGlobal.includes(dni)) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'DNI ya registrado',
+                        text: 'Este DNI ya se encuentra en nuestro sistema. Si continuas, tus datos serán actualizados.',
+                        confirmButtonColor: '#ffaa00',
+                        timer: 5000
+                    });
+                }
+
                 // Usamos nuestro propio backend (Apps Script) como proxy para evitar errores de CORS
                 fetch(scriptURL, {
                     method: 'POST',
@@ -708,7 +891,6 @@
 
             const loadingOverlay = document.getElementById('loading');
             const loadingText = document.getElementById('loading-text-msg');
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbz_Ibfi2WfKDFjCmsnZnrPHqermUSpzXNPvWhSN__eGH8A-J5PIAZWa5uGHmudZ7Icw/exec';
 
             const readFile = (f) => new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -731,6 +913,8 @@
                 const payload = {
                     dni: document.getElementById('dni').value,
                     nombres: document.getElementById('nombres').value,
+                    edad: document.getElementById('edad').value,
+                    tipo: document.getElementById('tipo').value,
                     institucion: institucionFinal,
                     deportes: deportesSeleccionados,
                     archivoBase64: base64DataPdf,
@@ -836,6 +1020,375 @@
                 console.error(err);
             });
         });
+        // ==========================================
+        // LÓGICA DE PANEL DE ADMINISTRACIÓN Y ESCÁNER
+        // ==========================================
+        
+        let allData = [];
+        let html5QrCode = null;
+
+        function switchView(view, tab) {
+            if (view === 'admin') {
+                document.getElementById('view-registro').style.display = 'none';
+                document.getElementById('view-admin').style.display = 'block';
+                
+                if (tab === 'escaner') {
+                    const triggerEl = document.querySelector('#pills-escaner-tab');
+                    const tabInstance = bootstrap.Tab.getInstance(triggerEl) || new bootstrap.Tab(triggerEl);
+                    tabInstance.show();
+                    iniciarEscaner();
+                } else {
+                    const triggerEl = document.querySelector('#pills-listado-tab');
+                    const tabInstance = bootstrap.Tab.getInstance(triggerEl) || new bootstrap.Tab(triggerEl);
+                    tabInstance.show();
+                    detenerEscaner();
+                    if (allData.length === 0) {
+                        cargarDatos();
+                    }
+                }
+            } else {
+                document.getElementById('view-registro').style.display = 'flex';
+                document.getElementById('view-admin').style.display = 'none';
+                detenerEscaner();
+            }
+        }
+
+        function cargarDatos() {
+            const loadingOverlay = document.getElementById('loading');
+            const loadingText = document.getElementById('loading-text-msg');
+            loadingText.innerText = 'Obteniendo datos...';
+            loadingOverlay.style.display = 'flex';
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 seg timeout
+            
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'get_all' }),
+                signal: controller.signal
+            })
+            .then(res => {
+                clearTimeout(timeoutId);
+                return res.text();
+            })
+            .then(text => {
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    console.error("Respuesta cruda del servidor:", text);
+                    throw new Error("Respuesta no JSON: " + text.substring(0, 100));
+                }
+                
+                loadingOverlay.style.display = 'none';
+                if(data.status === 'success') {
+                    allData = Array.isArray(data.data) ? data.data : [];
+                    actualizarFiltro();
+                    renderTabla(allData);
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Datos actualizados', showConfirmButton: false, timer: 1500 });
+                } else {
+                    Swal.fire('Error del servidor', data.message || 'Ocurrió un error inesperado.', 'error');
+                    allData = [];
+                    actualizarFiltro();
+                    renderTabla(allData);
+                }
+            })
+            .catch(err => {
+                clearTimeout(timeoutId);
+                loadingOverlay.style.display = 'none';
+                console.error("Error Fetch:", err);
+                
+                let errorMsg = err.message || 'Error desconocido';
+                if (err.name === 'AbortError') errorMsg = 'El servidor tardó más de 8 segundos en responder (Timeout).';
+                
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Apps Script falló',
+                    text: 'Detalle del error: ' + errorMsg + '. (Comprueba tu Apps Script)',
+                    confirmButtonText: 'Ver demo'
+                });
+                
+                // MOCK DATA PARA DEMOSTRACIÓN
+                allData = [
+                    { dni: '12345678', nombres: 'Juan Pérez (Demo)', institucion: 'I.E. “PARQUE INDUSTRIAL”', deportes: 'FUTSAL VARONES, BÁSQUET', fotoBase64: 'https://via.placeholder.com/150/0044cc/ffffff?text=FOTO' },
+                    { dni: '87654321', nombres: 'María Gómez (Demo)', institucion: 'I.E. “PARQUE INDUSTRIAL”', deportes: 'VÓLEY', fotoBase64: 'https://via.placeholder.com/150/ffaa00/ffffff?text=FOTO' },
+                    { dni: '11112222', nombres: 'Carlos Ruiz (Demo)', institucion: 'I.E. “CESAR VALLEJO”', deportes: 'FUTSAL VARONES', fotoBase64: 'https://via.placeholder.com/150/00c853/ffffff?text=FOTO' }
+                ];
+                actualizarFiltro();
+                renderTabla(allData);
+            });
+        }
+
+        function actualizarFiltro() {
+            const select = document.getElementById('institucionFilter');
+            const instituciones = [...new Set(allData.map(item => item.institucion))];
+            
+            select.innerHTML = '<option value="TODAS">TODAS LAS INSTITUCIONES</option>';
+            instituciones.forEach(inst => {
+                if(inst) select.innerHTML += `<option value="${inst}">${inst}</option>`;
+            });
+
+            select.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if(val === 'TODAS') {
+                    renderTabla(allData);
+                } else {
+                    renderTabla(allData.filter(x => x.institucion === val));
+                }
+            });
+        }
+
+        function renderTabla(datos) {
+            const tbody = document.getElementById('tabla-body');
+            tbody.innerHTML = '';
+            
+            if(datos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No hay registros</td></tr>';
+                return;
+            }
+
+            let htmlRows = '';
+            datos.forEach(row => {
+                // Optimización para cargar imágenes de Google Drive en etiquetas <img>
+                let fotoSrc = row.fotoBase64 || 'https://via.placeholder.com/50?text=FOTO';
+                if(fotoSrc.includes('drive.google.com/uc')) {
+                    const matchId = fotoSrc.match(/id=([-\w]{25,})/);
+                    if(matchId && matchId[1]) {
+                        fotoSrc = `https://drive.google.com/thumbnail?id=${matchId[1]}&sz=w200-h200`;
+                    }
+                }
+
+                htmlRows += `
+                    <tr>
+                        <td><img src="${fotoSrc}" width="50" height="50" style="object-fit: cover; border-radius: 5px;" loading="lazy" onerror="this.src='https://via.placeholder.com/50?text=Error'"></td>
+                        <td class="fw-bold">${row.dni}</td>
+                        <td>${row.nombres}</td>
+                        <td>${row.institucion}</td>
+                        <td><small>${row.edad || '-'} <br> <span class="text-primary">${row.tipo || '-'}</span></small></td>
+                        <td><span class="badge bg-secondary">${row.deportes}</span></td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = htmlRows;
+        }
+
+        async function generarPDF() {
+            const val = document.getElementById('institucionFilter').value;
+            let datosFiltro = allData;
+            if(val !== 'TODAS' && val !== '') {
+                datosFiltro = allData.filter(x => x.institucion === val);
+            }
+
+            if(datosFiltro.length === 0) {
+                Swal.fire('Vacío', 'No hay datos para generar carnets.', 'info');
+                return;
+            }
+
+            const loadingOverlay = document.getElementById('loading');
+            const loadingText = document.getElementById('loading-text-msg');
+            loadingText.innerText = 'Preparando Carnets...';
+            loadingOverlay.style.display = 'flex';
+
+            const chunkSize = 8;
+            let fullPdfHtml = '';
+            for (let i = 0; i < datosFiltro.length; i += chunkSize) {
+                const chunk = datosFiltro.slice(i, i + chunkSize);
+                
+                let pageHtml = `<div class="pdf-page">`;
+                
+                for (let j = 0; j < chunk.length; j++) {
+                    const p = chunk[j];
+                    
+                    const qrDiv = document.createElement('div');
+                    new QRCode(qrDiv, { text: p.dni, width: 128, height: 128 });
+                    const qrDataUrl = qrDiv.querySelector('canvas') ? qrDiv.querySelector('canvas').toDataURL() : '';
+
+                    let fotoSrc = p.fotoBase64 || 'https://via.placeholder.com/150?text=FOTO';
+                    if(fotoSrc.includes('drive.google.com/uc')) {
+                        const matchId = fotoSrc.match(/id=([-\w]{25,})/);
+                        if(matchId && matchId[1]) {
+                            fotoSrc = `https://drive.google.com/thumbnail?id=${matchId[1]}&sz=w400-h600`;
+                        }
+                    }
+
+                    pageHtml += `
+                        <div class="carnet">
+                            <div class="carnet-inner">
+                                <div class="carnet-header">Juegos Magisteriales 2026</div>
+                                <img class="carnet-photo" src="${fotoSrc}" alt="Foto" onerror="this.src='https://via.placeholder.com/150?text=Error'">
+                                <div class="carnet-data">
+                                    <div class="mb-1 text-center fw-bold" style="font-size:12px; color:#d32f2f;">${p.dni}</div>
+                                    <div class="mb-1" style="font-size:10px;"><strong>Nombres:</strong><br>${p.nombres}</div>
+                                    <div class="mb-1" style="font-size:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><strong>I.E:</strong> ${p.institucion}</div>
+                                    <div class="mb-1" style="font-size:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><strong>Dep:</strong> ${p.deportes}</div>
+                                </div>
+                                <img src="${qrDataUrl}" class="carnet-qr">
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                pageHtml += `</div>`;
+                fullPdfHtml += pageHtml;
+            }
+
+            // Construir la ventana de impresión nativa
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Carnets_${val === 'TODAS' ? 'Generales' : val}</title>
+                    <style>
+                        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #525659; }
+                        @page { size: A4 landscape; margin: 0; }
+                        .pdf-page {
+                            width: 297mm; min-height: 210mm;
+                            padding: 5mm; box-sizing: border-box;
+                            background: white;
+                            display: flex; flex-wrap: wrap; align-content: flex-start;
+                            margin: 20px auto;
+                            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+                            page-break-after: always;
+                        }
+                        .carnet {
+                            width: 71.75mm; height: 100mm;
+                            padding: 4mm; margin: 0;
+                            box-sizing: border-box; border: 1px dashed #ccc;
+                            page-break-inside: avoid; position: relative;
+                        }
+                        .carnet-inner {
+                            border: 2px solid #0044cc; border-radius: 8px; height: 100%;
+                            padding: 5px; text-align: center; position: relative;
+                            background: #fff;
+                        }
+                        .carnet-header { background: #0044cc; color: white; font-size: 11px; font-weight: bold; padding: 4px; border-radius: 4px; margin-bottom: 5px; text-transform: uppercase; }
+                        .carnet-photo { width: 35mm; height: 45mm; object-fit: cover; border: 2px solid #ffaa00; border-radius: 4px; margin: 0 auto 5px auto; display: block; }
+                        .carnet-data { text-align: left; line-height: 1.1; }
+                        .carnet-data strong { color: #0044cc; }
+                        .carnet-qr { position: absolute; bottom: 5px; right: 5px; width: 20mm; height: 20mm; background: white; padding: 2px; border-radius: 4px; }
+                        
+                        @media print {
+                            body { background: white; margin: 0; }
+                            .pdf-page { margin: 0; box-shadow: none; }
+                            .carnet-inner { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                            .carnet-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${fullPdfHtml}
+                    <script>
+                        window.onload = function() {
+                            setTimeout(function() {
+                                window.print();
+                            }, 800); // Esperar brevemente a que las fotos pinten
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            
+            loadingOverlay.style.display = 'none';
+        }
+
+        // ESCÁNER
+
+        function iniciarEscaner() {
+            document.getElementById('btn-start-scan').style.display = 'none';
+            document.getElementById('btn-stop-scan').style.display = 'inline-block';
+            document.getElementById('scan-result').innerHTML = '';
+
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+            .catch(err => {
+                Swal.fire('Error', 'No se pudo iniciar la cámara trasera. Intenta de nuevo o verifica permisos.', 'error');
+                detenerEscaner();
+            });
+        }
+
+        function detenerEscaner() {
+            if(html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                }).catch(err => console.log(err));
+            }
+            document.getElementById('btn-start-scan').style.display = 'inline-block';
+            document.getElementById('btn-stop-scan').style.display = 'none';
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            detenerEscaner();
+            Swal.fire({
+                title: 'Carnet Escaneado',
+                text: 'DNI Encontrado: ' + decodedText,
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonText: 'Ver Resolución (PDF)',
+                cancelButtonText: 'Escanear otro'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    buscarDocumentoPDF(decodedText);
+                } else {
+                    iniciarEscaner();
+                }
+            });
+        }
+
+        function buscarDocumentoPDF(dni) {
+            const loadingOverlay = document.getElementById('loading');
+            const loadingText = document.getElementById('loading-text-msg');
+            loadingText.innerText = 'Buscando documento en el servidor...';
+            loadingOverlay.style.display = 'flex';
+            
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'get_pdf', dni: dni })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loadingOverlay.style.display = 'none';
+                if(data.status === 'success' && data.pdfBase64) {
+                    abrirModalPDF(data.pdfBase64, data.mimeType || 'application/pdf');
+                } else {
+                    Swal.fire('No encontrado', data.message || 'No se encontró el PDF para este DNI en la base de datos.', 'warning').then(()=>iniciarEscaner());
+                }
+            })
+            .catch(err => {
+                loadingOverlay.style.display = 'none';
+                Swal.fire('Error de conexión', 'Verifica tu conexión a internet o el servidor.', 'error').then(()=>iniciarEscaner());
+            });
+        }
+
+        function abrirModalPDF(base64Data, mimeType) {
+            const iframe = document.getElementById('pdfIframe');
+            
+            if(base64Data.startsWith('http')) {
+                // Es un enlace de Google Drive
+                let url = base64Data;
+                if(url.includes('/view')) {
+                    url = url.replace(/\/view.*/, '/preview'); // Forzar modo vista previa para iframe
+                }
+                iframe.src = url;
+            } else {
+                // Es base64
+                if(!base64Data.startsWith('data:')) {
+                    base64Data = `data:${mimeType};base64,${base64Data}`;
+                }
+                iframe.src = base64Data;
+            }
+            
+            const pdfModal = new bootstrap.Modal(document.getElementById('pdfModal'));
+            pdfModal.show();
+        }
     </script>
+    <!-- Scripts Externos para Admin -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </body>
 </html>
