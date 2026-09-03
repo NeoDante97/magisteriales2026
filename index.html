@@ -3490,6 +3490,24 @@ function togglePassword() {
                 document.getElementById('res-institucion').innerText = jugador.institucion;
                 document.getElementById('res-edad').innerText = jugador.edad || '-';
                 document.getElementById('res-deportes').innerText = jugador.deportes || 'Ninguno';
+
+                let schoolLogoUrl = null;
+                let principalUrl = null;
+                if(typeof configData !== 'undefined' && configData && configData.logos) {
+                    const schoolLogo = configData.logos.find(l => l.institucion.trim().toLowerCase() === jugador.institucion.trim().toLowerCase());
+                    const principalLogo = configData.logos.find(l => l.institucion === 'PRINCIPAL');
+                    
+                    const getUrl = (l) => {
+                        let idMatch = l.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                        let actualId = idMatch ? (idMatch[1] || idMatch[2]) : null;
+                        return actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : l.url;
+                    };
+                    
+                    if(schoolLogo) schoolLogoUrl = getUrl(schoolLogo);
+                    if(principalLogo) principalUrl = getUrl(principalLogo);
+                }
+                
+                document.getElementById('res-watermark').src = schoolLogoUrl || principalUrl || '';
                 
                 // Store DNI globally for this session
                 window.currentScanDni = jugador.dni;
@@ -3613,7 +3631,7 @@ function togglePassword() {
                                     <img id="res-watermark" src="" alt="" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 200px; opacity: 0.15; pointer-events: none; z-index: -1;">
                                     <p><strong><i class="fas fa-school text-primary"></i> Institución:</strong> <span id="res-institucion"></span></p>
                                     <p><strong><i class="fas fa-calendar-alt text-success"></i> Edad:</strong> <span id="res-edad"></span></p>
-                                    <p><strong><i class="fas fa-running text-warning"></i> Deportes:</strong> <br> <span id="res-deportes" class="badge bg-secondary mt-1"></span></p>
+                                    <p><strong><i class="fas fa-running text-warning"></i> Deportes:</strong> <br> <span id="res-deportes" class="badge bg-secondary mt-1 text-wrap text-start lh-base" style="font-size: 0.9rem;"></span></p>
                                     <hr>
                                     <div class="d-grid gap-2">
                                         <button class="btn btn-danger fw-bold" onclick="verPdfGlobal()"><i class="fas fa-file-pdf"></i> VER ARCHIVO PDF</button>
