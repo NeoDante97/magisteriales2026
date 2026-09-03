@@ -415,6 +415,9 @@
                 width: 0px !important; /* Start hidden on mobile */
                 overflow: hidden;
             }
+            #sidebar.show-mobile-sidebar {
+                width: 260px !important;
+            }
             .admin-navbar .navbar-brand {
                 font-size: 1.1rem !important;
             }
@@ -784,8 +787,10 @@ function togglePassword() {
             <button class="btn btn-outline-light me-3 text-dark border-secondary" id="sidebarToggle" style="border-radius: 8px;">
                 <i class="fas fa-bars"></i>
             </button>
-            <span class="navbar-brand mb-0 h4 d-flex align-items-center">
-                <i class="fas fa-chart-line text-primary me-2"></i> Dashboard <span class="mx-2 text-muted fw-light">|</span> <span id="admin-name" class="fw-normal text-secondary">Admin</span>
+            <span class="navbar-brand mb-0 h4 d-flex align-items-center" style="max-width: calc(100vw - 160px);">
+                <i class="fas fa-chart-line text-primary me-2"></i> 
+                <span class="d-none d-sm-inline">Dashboard <span class="mx-2 text-muted fw-light">|</span> </span>
+                <span id="admin-name" class="fw-normal text-secondary" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle;">Admin</span>
             </span>
             <button type="button" class="btn btn-danger ms-auto shadow-sm" onclick="cerrarSesion()" style="border-radius: 8px; font-weight: 600;">
                 <i class="fas fa-sign-out-alt me-1"></i> Salir
@@ -1882,12 +1887,16 @@ function togglePassword() {
 
         document.getElementById('sidebarToggle').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
-            if (sidebar.style.width === '260px' || sidebar.style.width === '') {
-                sidebar.style.width = '0px';
-                sidebar.style.overflow = 'hidden';
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show-mobile-sidebar');
             } else {
-                sidebar.style.width = '260px';
-                sidebar.style.overflow = 'auto';
+                if (sidebar.style.width === '260px' || sidebar.style.width === '') {
+                    sidebar.style.width = '0px';
+                    sidebar.style.overflow = 'hidden';
+                } else {
+                    sidebar.style.width = '260px';
+                    sidebar.style.overflow = 'auto';
+                }
             }
         });
 
@@ -1895,8 +1904,7 @@ function togglePassword() {
             item.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
                     const sidebar = document.getElementById('sidebar');
-                    sidebar.style.width = '0px';
-                    sidebar.style.overflow = 'hidden';
+                    sidebar.classList.remove('show-mobile-sidebar');
                 }
             });
         });
