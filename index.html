@@ -2051,7 +2051,7 @@ function togglePassword() {
             // Inicializar stats con todas las instituciones conocidas
             if (allInstituciones) {
                 allInstituciones.forEach(inst => {
-                    stats[inst.nombre] = { total: 0, hombres: 0, mujeres: 0, delegados: [] };
+                    stats[inst.nombre] = { total: 0, hombres: 0, mujeres: 0, delegados: [], docentes: 0, auxiliar: 0, administrativo: 0 };
                 });
             }
 
@@ -2059,7 +2059,7 @@ function togglePassword() {
             if (allDelegados) {
                 allDelegados.forEach(d => {
                     if (!stats[d.institucion]) {
-                        stats[d.institucion] = { total: 0, hombres: 0, mujeres: 0, delegados: [] };
+                        stats[d.institucion] = { total: 0, hombres: 0, mujeres: 0, delegados: [], docentes: 0, auxiliar: 0, administrativo: 0 };
                     }
                     stats[d.institucion].delegados.push(d.nombres);
                     totalDelegados++;
@@ -2071,12 +2071,16 @@ function togglePassword() {
                 allData.forEach(item => {
                     if (!item.institucion) return;
                     if (!stats[item.institucion]) {
-                        stats[item.institucion] = { total: 0, hombres: 0, mujeres: 0, delegados: [] };
+                        stats[item.institucion] = { total: 0, hombres: 0, mujeres: 0, delegados: [], docentes: 0, auxiliar: 0, administrativo: 0 };
                     }
                     stats[item.institucion].total++;
                     totalGeneral++;
                     if (item.genero === 'Hombre') stats[item.institucion].hombres++;
                     else if (item.genero === 'Mujer') stats[item.institucion].mujeres++;
+
+                    if (item.tipo && item.tipo.toUpperCase() === 'DOCENTE') stats[item.institucion].docentes++;
+                    else if (item.tipo && item.tipo.toUpperCase() === 'AUXILIAR') stats[item.institucion].auxiliar++;
+                    else if (item.tipo && item.tipo.toUpperCase() === 'ADMINISTRATIVO') stats[item.institucion].administrativo++;
                 });
             }
             
@@ -2086,7 +2090,7 @@ function togglePassword() {
             const elTotalDel = document.getElementById('widget-total-delegados');
             
             if (elTotalJugadores) elTotalJugadores.innerText = totalGeneral;
-            if (elTotalInst) elTotalInst.innerText = Object.keys(stats).filter(k => stats[k].total > 0 || stats[k].delegados.length > 0).length || 0;
+            if (elTotalInst) elTotalInst.innerText = allInstituciones ? allInstituciones.length : (Object.keys(stats).length || 0);
             if (elTotalDel) elTotalDel.innerText = totalDelegados;
             
             if (Object.keys(stats).length === 0) {
@@ -2158,6 +2162,23 @@ function togglePassword() {
                                     </div>
                                     <div style="color: var(--secondary-color); background: rgba(255,170,0,0.05); padding: 8px 15px; border-radius: 10px; width: 48%;">
                                         <i class="fas fa-female fs-4 d-block mb-1"></i> ${stats[inst].mujeres}
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 p-2 rounded" style="background: #f8f9fa; border: 1px dashed #ced4da;">
+                                    <div class="d-flex justify-content-between text-center" style="font-size: 0.8rem; color: #495057;">
+                                        <div title="Docentes">
+                                            <i class="fas fa-chalkboard-teacher d-block mb-1 text-primary"></i>
+                                            <strong>${stats[inst].docentes}</strong>
+                                        </div>
+                                        <div title="Auxiliares">
+                                            <i class="fas fa-hands-helping d-block mb-1 text-success"></i>
+                                            <strong>${stats[inst].auxiliar}</strong>
+                                        </div>
+                                        <div title="Administrativos">
+                                            <i class="fas fa-laptop d-block mb-1 text-info"></i>
+                                            <strong>${stats[inst].administrativo}</strong>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
