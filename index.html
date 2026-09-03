@@ -902,7 +902,7 @@ function togglePassword() {
                                 </div>
                             </div>
                             <div class="col-md-6 text-md-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end">
-                                <button class="btn btn-warning fw-bold text-dark" onclick="abrirModalGenerarPDF()">
+                                <button id="btn-show-modal-generar-pdf" class="btn btn-warning fw-bold text-dark" onclick="abrirModalGenerarPDF()">
                                     <i class="fas fa-file-pdf"></i> Generar PDF
                                 </button>
                                 <button class="btn btn-success fw-bold" onclick="abrirModalRegistro()">
@@ -2539,10 +2539,9 @@ function togglePassword() {
             btn.disabled = true;
             
             try {
-                const pdfContainer = document.createElement('div');
+                                const pdfContainer = document.createElement('div');
                 pdfContainer.style.background = '#fff';
                 pdfContainer.style.width = '210mm';
-                pdfContainer.style.padding = '5mm';
                 pdfContainer.style.boxSizing = 'border-box';
                 
                 const titulo = configData.titulo !== undefined ? configData.titulo : 'JUEGOS MAGISTERIALES';
@@ -2572,6 +2571,7 @@ function togglePassword() {
                     return `<img src="${s}" crossorigin="anonymous" style="height: 25px; max-width: 35px; object-fit: contain; margin: 0 4px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">`;
                 }).join('');
 
+                let currentPage = null;
                 for (let i = 0; i < jugadores.length; i++) {
                     const jugador = jugadores[i];
                     
@@ -2603,7 +2603,7 @@ function togglePassword() {
                     }
                     
                     const htmlFrontal = `
-                        <div style="width: 100mm; height: 70mm; box-sizing: border-box; background: #ffffff; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: 'Arial', sans-serif; border: 2px solid ${c_bordes}; border-radius: 8px 0 0 8px; border-right: none;">
+                        <div style="width: 105mm; height: 70mm; box-sizing: border-box; background: #ffffff; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: 'Arial', sans-serif; border: 2px solid ${c_bordes}; border-radius: 8px 0 0 8px; border-right: none;">
                             <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #ffffff 40%, #f0f4f8 100%); z-index: 1;"></div>
                             <div style="position: absolute; top: -50%; right: -20%; width: 100%; height: 200%; background: ${c_bordes}; transform: rotate(15deg); opacity: 0.08; z-index: 1;"></div>
                             ${srcPrinc ? `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 65%; height: 65%; background-image: url('${srcPrinc}'); background-size: contain; background-position: center; background-repeat: no-repeat; opacity: 0.12; z-index: 1; filter: grayscale(100%);"></div>` : ''}
@@ -2631,7 +2631,6 @@ function togglePassword() {
                                     </div>
                                     <div style="margin-bottom: 5px; display: flex; gap: 10px; align-items: center;">
                                         <span style="background: ${c_top}; color: white; font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 4px;">${jugador.tipo || '-'}</span>
-                                        <div><div style="color: ${c_texto}; font-size: 7px; font-weight: 900;">EDAD</div><div style="color: #222; font-size: 11px; font-weight: 900; margin-top: -2px;">${jugador.edad || '-'}</div></div>
                                     </div>
                                     <div style="margin-bottom: 5px; background: white; padding: 3px 6px; border: 1px solid #e0e0e0; border-radius: 4px; border-left: 4px solid ${c_top};">
                                         <div style="color: ${c_top}; font-size: 7px; font-weight: 800; text-transform: uppercase;">Institución</div>
@@ -2648,7 +2647,7 @@ function togglePassword() {
                     `;
                     
                     const htmlReverso = `
-                        <div style="width: 100mm; height: 70mm; box-sizing: border-box; background: linear-gradient(135deg, ${c_back_top}, ${c_back_bottom}); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Arial', sans-serif; border: 2px solid ${c_back_bordes}; border-radius: 0 8px 8px 0; border-left: 1px dashed #ccc;">
+                        <div style="width: 105mm; height: 70mm; box-sizing: border-box; background: linear-gradient(135deg, ${c_back_top}, ${c_back_bottom}); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Arial', sans-serif; border: 2px solid ${c_back_bordes}; border-radius: 0 8px 8px 0; border-left: 1px dashed #ccc;">
                             <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; opacity: 0.05; z-index: 1; transform: rotate(-20deg); font-size: 20px; font-weight: 900; color: white; line-height: 1.5; text-transform: uppercase;">
                                 ${(watermarkText + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;').repeat(50)}
                             </div>
@@ -2663,38 +2662,90 @@ function togglePassword() {
                         </div>
                     `;
                     
+                    if (i % 5 === 0) {
+                        currentPage = document.createElement('div');
+                        currentPage.style.width = '210mm';
+                        currentPage.style.height = '297mm';
+                        currentPage.style.display = 'flex';
+                        currentPage.style.flexDirection = 'column';
+                        currentPage.style.justifyContent = 'center';
+                        currentPage.style.alignItems = 'center';
+                        currentPage.style.boxSizing = 'border-box';
+                        currentPage.style.padding = '0';
+                        if (i + 5 < jugadores.length) {
+                            currentPage.style.pageBreakAfter = 'always';
+                        }
+                        pdfContainer.appendChild(currentPage);
+                    }
+                    
                     const cardWrapper = document.createElement('div');
-                    cardWrapper.style.width = '130mm';
-                    cardWrapper.style.height = '46mm'; 
-                    cardWrapper.style.margin = '0 auto';
+                    cardWrapper.style.width = '180mm';
+                    cardWrapper.style.height = '60mm';
+                    cardWrapper.style.marginBottom = '0';
+                    cardWrapper.style.overflow = 'hidden';
                     
                     cardWrapper.innerHTML = `
-                        <div style="width: 200mm; height: 70mm; transform: scale(0.65); transform-origin: top center; display: flex; flex-direction: row; margin: 0 auto;">
+                        <div style="width: 210mm; height: 70mm; transform: scale(0.8571428); transform-origin: top left; display: flex; flex-direction: row;">
                             ${htmlFrontal}
                             ${htmlReverso}
                         </div>
                     `;
                     
-                    pdfContainer.appendChild(cardWrapper);
-                    
-                    if ((i + 1) % 6 === 0 && i !== jugadores.length - 1) {
-                        const pb = document.createElement('div');
-                        pb.style.pageBreakAfter = 'always';
-                        pb.style.height = '0';
-                        pb.style.visibility = 'hidden';
-                        pdfContainer.appendChild(pb);
-                    }
+                    currentPage.appendChild(cardWrapper);
                 }
                 
-                const opt = {
-                    margin: 5,
-                    filename:     `Carnets_${institucion === 'TODOS' ? 'General' : institucion}.pdf`,
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true },
-                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
+                Swal.fire({
+                    title: 'Generando PDF de Alta Calidad',
+                    html: 'Procesando páginas... <b>0</b>%',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                pdfContainer.style.position = 'absolute';
+                pdfContainer.style.top = '-10000px';
+                pdfContainer.style.left = '-10000px';
+                document.body.appendChild(pdfContainer);
+
+                const pages = pdfContainer.children;
+                const total = pages.length;
                 
-                await html2pdf().set(opt).from(pdfContainer).save();
+                const JS_PDF = window.jspdf ? window.jspdf.jsPDF : (window.jsPDF ? window.jsPDF : null);
+                
+                try {
+                    if (JS_PDF && total > 0) {
+                        const doc = new JS_PDF('p', 'mm', 'a4');
+                        for (let p = 0; p < total; p++) {
+                            const canvas = await html2canvas(pages[p], { scale: 4, useCORS: true, logging: false });
+                            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                            if (p > 0) doc.addPage();
+                            doc.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+                            
+                            const pct = Math.round(((p + 1) / total) * 100);
+                            const bElement = Swal.getHtmlContainer().querySelector('b');
+                            if (bElement) bElement.textContent = pct;
+                            
+                            // Pequeña pausa para permitir que la interfaz se actualice
+                            await new Promise(r => setTimeout(r, 20));
+                        }
+                        doc.save(`Carnets_${institucion === 'TODOS' ? 'General' : institucion}.pdf`);
+                    } else {
+                        // Fallback si no está jsPDF disponible directamente
+                        const opt = {
+                            margin:       0,
+                            filename:     `Carnets_${institucion === 'TODOS' ? 'General' : institucion}.pdf`,
+                            image:        { type: 'jpeg', quality: 1.0 },
+                            html2canvas:  { scale: 4, useCORS: true, logging: false },
+                            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                        };
+                        await html2pdf().set(opt).from(pdfContainer).save();
+                    }
+                } finally {
+                    if (document.body.contains(pdfContainer)) {
+                        document.body.removeChild(pdfContainer);
+                    }
+                }
                 
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -2705,7 +2756,7 @@ function togglePassword() {
                 console.error(err);
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                Swal.fire('Error', 'Hubo un problema al generar el PDF.', 'error');
+                Swal.fire('Error', 'Hubo un problema al generar el PDF: ' + (err.message || err.toString()), 'error');
             }
         }
 
@@ -2871,6 +2922,11 @@ function renderLogos(logos) {
             document.getElementById('menu-delegados').style.setProperty('display', esDelegado ? 'none' : 'block', 'important');
             document.getElementById('menu-instituciones').style.setProperty('display', esDelegado ? 'none' : 'block', 'important');
             document.getElementById('menu-jugadores').style.setProperty('display', 'block', 'important');
+            
+            const btnGenerarPdf = document.getElementById('btn-show-modal-generar-pdf');
+            if (btnGenerarPdf) {
+                btnGenerarPdf.style.setProperty('display', esDelegado ? 'none' : 'inline-block', 'important');
+            }
         }
 
         function cerrarSesion() {
@@ -2948,7 +3004,7 @@ function renderLogos(logos) {
                 const qrDataUrl = qrDiv.querySelector('canvas') ? qrDiv.querySelector('canvas').toDataURL() : '';
                 
                 const htmlFrontal = `
-                    <div style="width: 100mm; height: 70mm; box-sizing: border-box; background: #ffffff; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: 'Arial', sans-serif; border: 2px solid ${c_bordes}; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                    <div style="width: 105mm; height: 70mm; box-sizing: border-box; background: #ffffff; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: 'Arial', sans-serif; border: 2px solid ${c_bordes}; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
                         
                         <!-- FONDO -->
                         <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #ffffff 40%, #f0f4f8 100%); z-index: 1;"></div>
@@ -2992,10 +3048,6 @@ function renderLogos(logos) {
                                     <span style="background: ${c_top}; color: white; font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); text-transform: uppercase;">
                                         ${jugador.tipo || '-'}
                                     </span>
-                                    <div>
-                                        <div style="color: ${c_texto}; font-size: 7px; font-weight: 900; text-transform: uppercase;">EDAD</div>
-                                        <div style="color: #222; font-size: 11px; font-weight: 900; margin-top: -2px;">${jugador.edad || '-'}</div>
-                                    </div>
                                 </div>
                                 
                                 <div style="margin-bottom: 5px; background: white; padding: 3px 6px; border: 1px solid #e0e0e0; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid ${c_top};">
@@ -3022,7 +3074,7 @@ function renderLogos(logos) {
                 `;
 
                 const htmlReverso = `
-                    <div style="width: 100mm; height: 70mm; box-sizing: border-box; background: linear-gradient(135deg, ${c_back_top}, ${c_back_bottom}); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Arial', sans-serif; border: 2px solid ${c_back_bordes}; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                    <div style="width: 105mm; height: 70mm; box-sizing: border-box; background: linear-gradient(135deg, ${c_back_top}, ${c_back_bottom}); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Arial', sans-serif; border: 2px solid ${c_back_bordes}; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
                         
                         <!-- DECORACIÓN REVERSO -->
                         <div style="position: absolute; top: -20%; left: -20%; width: 140%; height: 140%; background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px); z-index: 1;"></div>
@@ -3827,6 +3879,7 @@ function renderLogos(logos) {
     <!-- Scripts Externos para Admin -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- View Scanner Global -->
@@ -3888,6 +3941,3 @@ function renderLogos(logos) {
     </div>
 </body>
 </html>
-
-
-
