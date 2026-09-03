@@ -14,7 +14,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
             --primary-color: #0044cc;
@@ -40,13 +41,12 @@
 
         #view-admin {
             width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            backdrop-filter: blur(15px);
+            min-height: 100vh;
+            background: #f4f6f9;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
 
         /* Admin CSS */
@@ -60,6 +60,58 @@
         .carnet-qr { position: absolute; bottom: 5px; right: 5px; width: 20mm; height: 20mm; background: white; padding: 2px; border-radius: 4px; }
         #reader { width: 100%; max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .carnet-preview-container { display: none; }
+
+        /* Animated Elegant Border for Login */
+        .login-elegant-container {
+            position: relative;
+            background: #ffffff; /* Fondo sólido para que el gradiente no se trasluzca */
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%; max-width: 400px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); /* Sombra más suave */
+        }
+        
+        .login-elegant-container::before {
+            content: "";
+            position: absolute;
+            inset: -3px; /* Exactamente 3px de borde */
+            border-radius: 15px;
+            background: linear-gradient(90deg, #a1c4fd, #c2e9fb, #a1c4fd, #c2e9fb); /* Colores pastel suaves */
+            background-size: 300% 300%;
+            z-index: -1;
+            animation: move-border 4s linear infinite;
+        }
+
+        .login-elegant-container .input-group-text,
+        .login-elegant-container .form-control,
+        .login-elegant-container .form-select {
+            border-color: #e2e8f0;
+        }
+        .login-elegant-container .form-control:focus,
+        .login-elegant-container .form-select:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.15);
+        }
+
+        .btn-login-elegant {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            text-transform: uppercase;
+            box-shadow: 0 8px 20px rgba(74, 144, 226, 0.25);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .btn-login-elegant:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(74, 144, 226, 0.35);
+            color: white;
+        }
+
+        @keyframes move-border {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
 
         .form-container {
             background: rgba(255, 255, 255, 0.96);
@@ -354,20 +406,126 @@
                 font-size: 0.9rem;
             }
         }
+        /* Modern Admin Dashboard Styles */
+        #view-admin {
+            background-color: #f4f7fa;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        /* Modern Sidebar */
+        #sidebar {
+            background: linear-gradient(180deg, #1e1e2d 0%, #151521 100%) !important;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            z-index: 1040;
+        }
+        #sidebar .list-group-item {
+            background: transparent !important;
+            color: #a2a3b7 !important;
+            border: none;
+            margin: 5px 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            align-items: center;
+        }
+        #sidebar .list-group-item i {
+            font-size: 1.2rem;
+            width: 30px;
+            transition: all 0.3s;
+            color: #494b74;
+        }
+        #sidebar .list-group-item:hover, #sidebar .list-group-item.active {
+            background: rgba(255,255,255,0.05) !important;
+            color: #ffffff !important;
+            transform: translateX(5px);
+        }
+        #sidebar .list-group-item:hover i, #sidebar .list-group-item.active i {
+            color: var(--secondary-color);
+            filter: drop-shadow(0 0 5px rgba(255,170,0,0.5));
+        }
+
+        /* Modern Topbar */
+        .admin-navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .admin-navbar .navbar-brand {
+            color: #1e1e2d !important;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .admin-navbar .btn-outline-light {
+            color: #1e1e2d !important;
+            border-color: #e0e0e0 !important;
+        }
+        .admin-navbar .btn-outline-light:hover {
+            background: #1e1e2d !important;
+            color: #fff !important;
+        }
+
+        /* Modern Cards */
+        .admin-tab .card {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .admin-tab .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        }
+        .admin-tab .card-header {
+            border-top-left-radius: 16px !important;
+            border-top-right-radius: 16px !important;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background: #fff;
+            padding: 20px;
+        }
+        
+        /* Summary Widgets */
+        .widget-card {
+            background: linear-gradient(135deg, #ffffff, #f9f9f9);
+            border-left: 5px solid var(--primary-color);
+        }
+        .widget-card .icon-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+        .bg-light-primary { background: rgba(0, 68, 204, 0.1); color: var(--primary-color); }
+        .bg-light-success { background: rgba(0, 200, 83, 0.1); color: var(--success-color); }
+        .bg-light-warning { background: rgba(255, 170, 0, 0.1); color: var(--secondary-color); }
     </style>
 </head>
 <body>
-
-    <div class="loading-overlay" id="loading">
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading-overlay">
         <div class="spinner-wrapper">
             <div class="loader-ring"></div>
             <div class="loader-ring"></div>
         </div>
-        <div class="loading-text" id="loading-text-msg">Validando...</div>
+        <div class="loading-text" id="loading-text-msg">PROCESANDO...</div>
     </div>
 
-<div id="view-registro">
-    <div class="form-container">
+    <!-- Vista Registro -->
+    <div id="view-registro">
+        <div style="position: fixed; top: 20px; right: 20px; z-index: 99999; display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 12px; backdrop-filter: blur(5px);">
+            <button class="btn fw-bold shadow" style="background: rgba(0,0,0,0.6); color: #00ffcc; border: 1px solid #00ffcc; border-radius: 8px;" onclick="abrirScannerGlobal()">
+                <i class="fas fa-qrcode"></i> SCANER QR
+            </button>
+            <button class="btn fw-bold shadow" style="background: rgba(0,0,0,0.6); color: #ffaa00; border: 1px solid #ffaa00; border-radius: 8px;" onclick="switchView('login')">
+                <i class="fas fa-user-shield"></i> Área Admin
+            </button>
+        </div>
+
+        <div class="form-container">
         <div class="logo-container">
             <i class="fas fa-medal logo-icon"></i>
         </div>
@@ -392,20 +550,30 @@
             </div>
 
             <div class="row">
-                <div class="col-md-6 form-group-custom" style="animation-delay: 1.15s;">
+                <div class="col-md-4 form-group-custom" style="animation-delay: 1.15s;">
                     <label for="edad" class="form-label">Edad <span class="text-danger">*</span></label>
                     <input type="number" class="form-control" id="edad" name="edad" placeholder="Tu edad" min="18" max="100" required>
                     <i class="fas fa-calendar-alt input-icon"></i>
                 </div>
-                <div class="col-md-6 form-group-custom" style="animation-delay: 1.2s;">
+                <div class="col-md-4 form-group-custom" style="animation-delay: 1.2s;">
                     <label for="tipo" class="form-label">Tipo <span class="text-danger">*</span></label>
                     <select class="form-control" id="tipo" name="tipo" required style="appearance: none; -webkit-appearance: none; cursor: pointer;">
-                        <option value="" disabled selected>Seleccione Tipo</option>
+                        <option value="" disabled selected>Seleccione</option>
                         <option value="Docente">Docente</option>
                         <option value="Auxiliar">Auxiliar</option>
-                        <option value="Adminitrativos_CAS">Administrativos CAS</option>
+                        <option value="Administrativo">Administrativo</option>
                     </select>
                     <i class="fas fa-briefcase input-icon" style="z-index: 2; pointer-events: none;"></i>
+                    <i class="fas fa-chevron-down" style="position: absolute; right: 25px; top: 44px; color: #999; pointer-events: none; font-size: 0.9rem;"></i>
+                </div>
+                <div class="col-md-4 form-group-custom" style="animation-delay: 1.25s;">
+                    <label for="genero" class="form-label">Género <span class="text-danger">*</span></label>
+                    <select class="form-control" id="genero" name="genero" required style="appearance: none; -webkit-appearance: none; cursor: pointer;">
+                        <option value="" disabled selected>Seleccione</option>
+                        <option value="Hombre">Hombre</option>
+                        <option value="Mujer">Mujer</option>
+                    </select>
+                    <i class="fas fa-venus-mars input-icon" style="z-index: 2; pointer-events: none;"></i>
                     <i class="fas fa-chevron-down" style="position: absolute; right: 25px; top: 44px; color: #999; pointer-events: none; font-size: 0.9rem;"></i>
                 </div>
             </div>
@@ -494,86 +662,466 @@
 
 </div> <!-- End #view-registro -->
 
-<!-- VIEW ADMIN -->
-<div id="view-admin" style="display: none;" class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-        <h3 class="m-0 text-primary fw-bold"><i class="fas fa-medal text-warning"></i> Admin Juegos 2026</h3>
-        <button type="button" class="btn btn-outline-secondary" onclick="switchView('registro')">
-            <i class="fas fa-arrow-left"></i> Volver al Registro
+<!-- VIEW LOGIN -->
+<div id="view-login" style="display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; width: 100%; position: relative; background: linear-gradient(135deg, #111, #1a2a3a); overflow: hidden;">
+    <!-- Decoración de fondo deportivo -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,170,0,0.03) 40px, rgba(255,170,0,0.03) 80px); pointer-events: none;"></div>
+    <div style="position: absolute; top: -100px; right: -50px; width: 300px; height: 300px; background: #0044cc; border-radius: 50%; opacity: 0.3; filter: blur(60px); pointer-events: none;"></div>
+    <div style="position: absolute; bottom: -100px; left: -50px; width: 300px; height: 300px; background: #ffaa00; border-radius: 50%; opacity: 0.2; filter: blur(60px); pointer-events: none;"></div>
+
+    <div class="login-sport-container" style="background: rgba(255,255,255,0.95); padding: 40px 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); z-index: 2; width: 90%; max-width: 420px; text-align: center; border-top: 5px solid #ffaa00; animation: slideUpFade 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: linear-gradient(135deg, #0044cc, #002266); border-radius: 50%; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,68,204,0.4); animation: bounceSport 2.5s infinite ease-in-out;">
+            <i class="fas fa-running" style="font-size: 2.2rem; color: #ffaa00;"></i>
+        </div>
+        
+        <h3 style="font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 30px; color: #111; font-style: italic;">Acceso Oficial</h3>
+        
+        <div class="mb-4 text-start position-relative">
+            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Documento (DNI)</label>
+            <div class="input-group" style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden; border: 1px solid #e0e0e0;">
+                <span class="input-group-text bg-white border-0" style="color: #0044cc; padding-left: 15px;"><i class="fas fa-id-card"></i></span>
+                <input type="text" id="login_dni" class="form-control border-0" style="box-shadow: none; height: 50px; background: white; font-weight: bold; color: #333;" placeholder="Escribe tu DNI">
+            </div>
+        </div>
+        
+        <div class="mb-4 text-start position-relative">
+            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Código de Seguridad</label>
+            <div class="input-group" style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden; border: 1px solid #e0e0e0;">
+                <span class="input-group-text bg-white border-0" style="color: #0044cc; padding-left: 15px;"><i class="fas fa-lock"></i></span>
+                <input type="password" id="login_pass" class="form-control border-0" style="box-shadow: none; height: 50px; background: white; font-weight: bold; color: #333;" placeholder="••••••••">
+                <span class="input-group-text bg-white border-0" style="cursor: pointer; color: #999; padding-right: 15px;" onclick="togglePassword()" id="eye-icon">
+                    <i class="fas fa-eye"></i>
+                </span>
+            </div>
+        </div>
+        
+        <div class="mb-4 text-start position-relative">
+            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Rol de Sistema</label>
+            <div class="input-group" style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden; border: 1px solid #e0e0e0;">
+                <span class="input-group-text bg-white border-0" style="color: #0044cc; padding-left: 15px;"><i class="fas fa-user-shield"></i></span>
+                <select id="login_tipo" class="form-select border-0" style="box-shadow: none; height: 50px; background: white; font-weight: bold; color: #333;">
+                    <option value="Administrador">Administrador General</option>
+                    <option value="Delegado">Delegado</option>
+                </select>
+            </div>
+        </div>
+        
+        <button type="button" class="btn w-100 fw-bold mt-2 text-white" onclick="realizarLogin()" style="border-radius: 10px; height: 55px; font-size: 1.15rem; text-transform: uppercase; letter-spacing: 1.5px; background: linear-gradient(135deg, #0044cc, #002266); border: none; box-shadow: 0 8px 20px rgba(0,68,204,0.3); transition: all 0.3s ease;">
+            <i class="fas fa-sign-in-alt me-2"></i> Ingresar
+        </button>
+        
+        <button type="button" class="btn btn-link mt-4 text-decoration-none text-muted" onclick="switchView('registro')" style="font-size: 0.95rem; font-weight: bold; letter-spacing: 0.5px;">
+            <i class="fas fa-arrow-left me-1"></i> Volver al registro
         </button>
     </div>
+</div>
 
-    <!-- Pestañas -->
-    <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="pills-listado-tab" data-bs-toggle="pill" data-bs-target="#pills-listado" type="button" role="tab">
-                <i class="fas fa-users"></i> Listado y Carnets
+<style>
+@keyframes slideUpFade {
+    0% { transform: translateY(40px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes bounceSport {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+.login-sport-container button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,68,204,0.5);
+    background: linear-gradient(135deg, #0055ff, #003399);
+}
+</style>
+<script>
+function togglePassword() {
+    const pass = document.getElementById('login_pass');
+    const eye = document.getElementById('eye-icon').querySelector('i');
+    if (pass.type === 'password') {
+        pass.type = 'text';
+        eye.classList.remove('fa-eye');
+        eye.classList.add('fa-eye-slash');
+        eye.style.color = '#0044cc';
+    } else {
+        pass.type = 'password';
+        eye.classList.remove('fa-eye-slash');
+        eye.classList.add('fa-eye');
+        eye.style.color = '#999';
+    }
+}
+</script>
+
+<!-- VIEW ADMIN (DASHBOARD) -->
+<div id="view-admin" style="display: none; width: 100%; min-height: 100vh; background: #f4f6f9;">
+    <!-- Topbar -->
+    <nav class="navbar navbar-expand-lg admin-navbar sticky-top w-100" style="z-index: 1050;">
+        <div class="container-fluid px-4">
+            <button class="btn btn-outline-light me-3 text-dark border-secondary" id="sidebarToggle" style="border-radius: 8px;">
+                <i class="fas fa-bars"></i>
             </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="pills-escaner-tab" data-bs-toggle="pill" data-bs-target="#pills-escaner" type="button" role="tab">
-                <i class="fas fa-qrcode"></i> Escáner
+            <span class="navbar-brand mb-0 h4 d-flex align-items-center">
+                <i class="fas fa-chart-line text-primary me-2"></i> Dashboard <span class="mx-2 text-muted fw-light">|</span> <span id="admin-name" class="fw-normal text-secondary">Admin</span>
+            </span>
+            <button type="button" class="btn btn-danger ms-auto shadow-sm" onclick="cerrarSesion()" style="border-radius: 8px; font-weight: 600;">
+                <i class="fas fa-sign-out-alt me-1"></i> Salir
             </button>
-        </li>
-    </ul>
+        </div>
+    </nav>
 
-    <div class="tab-content" id="pills-tabContent">
-        
-        <!-- TAB LISTADO -->
-        <div class="tab-pane fade show active" id="pills-listado" role="tabpanel">
-            <div class="card shadow-sm border-0 bg-transparent">
-                <div class="card-body p-0">
-                    <div class="row align-items-end mb-4">
-                        <div class="col-md-8">
-                            <label class="form-label fw-bold">Seleccionar Institución Educativa</label>
-                            <select id="institucionFilter" class="form-select">
-                                <option value="">Cargando instituciones...</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                            <button class="btn btn-primary" onclick="cargarDatos()"><i class="fas fa-sync-alt"></i> Actualizar</button>
-                            <button class="btn btn-success" onclick="generarPDF()"><i class="fas fa-file-pdf"></i> Generar Carnets</button>
-                        </div>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle bg-white rounded shadow-sm">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Foto</th>
-                                    <th>DNI</th>
-                                    <th>Nombres</th>
-                                    <th>Institución</th>
-                                    <th>Edad/Tipo</th>
-                                    <th>Deportes</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-body">
-                                <tr><td colspan="6" class="text-center py-4">Haz clic en Actualizar para cargar los datos</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+    <div class="d-flex" style="min-height: calc(100vh - 56px);">
+        <!-- Sidebar -->
+        <div id="sidebar" style="width: 260px; transition: all 0.3s; overflow-y: auto;">
+            <div class="text-center py-4 mb-2 border-bottom" style="border-color: rgba(255,255,255,0.05) !important;">
+                <div class="logo-icon mx-auto mb-2" style="width: 60px; height: 60px; line-height: 60px; font-size: 1.8rem; background: linear-gradient(135deg, #0044cc, #002266);">
+                    <i class="fas fa-medal text-white"></i>
                 </div>
+                <h6 class="text-white fw-bold mb-0" style="letter-spacing: 1px;">JUEGOS 2026</h6>
+                <small class="text-muted" style="font-size: 0.75rem;">Panel Administrativo</small>
+            </div>
+            <div class="list-group list-group-flush mt-2 px-2">
+                <a href="#" id="menu-graficos" class="list-group-item active" onclick="showTab('graficos')">
+                    <i class="fas fa-chart-pie"></i> Gráficos
+                </a>
+                <a href="#" id="menu-jugadores" class="list-group-item" onclick="showTab('jugadores')">
+                    <i class="fas fa-users"></i> Jugadores
+                </a>
+                <a href="#" id="menu-configuracion" class="list-group-item" onclick="showTab('configuracion')">
+                    <i class="fas fa-cogs"></i> Configuración
+                </a>
+                <a href="#" id="menu-administradores" class="list-group-item" onclick="showTab('administradores')">
+                    <i class="fas fa-user-shield"></i> Administrador
+                </a>
+                <a href="#" id="menu-delegados" class="list-group-item" onclick="showTab('delegados')">
+                    <i class="fas fa-user-tie"></i> Delegados
+                </a>
+                <a href="#" id="menu-instituciones" class="list-group-item" onclick="showTab('instituciones')">
+                    <i class="fas fa-school"></i> Instituciones
+                </a>
             </div>
         </div>
 
-        <!-- TAB ESCANER -->
-        <div class="tab-pane fade" id="pills-escaner" role="tabpanel">
-            <div class="card shadow-sm border-0 bg-transparent">
-                <div class="card-body text-center p-0">
-                    <h4 class="mb-3">Escáner de Carnet</h4>
-                    <p class="text-muted">Apunta la cámara al código QR del carnet para visualizar la resolución/documento del participante.</p>
-                    
-                    <div id="reader" class="bg-white"></div>
-                    <div id="scan-result" class="mt-4"></div>
-                    
-                    <button class="btn btn-primary mt-3" id="btn-start-scan" onclick="iniciarEscaner()">
-                        <i class="fas fa-camera"></i> Iniciar Cámara
-                    </button>
-                    <button class="btn btn-danger mt-3" id="btn-stop-scan" onclick="detenerEscaner()" style="display: none;">
-                        <i class="fas fa-stop"></i> Detener
-                    </button>
+        <!-- Page Content -->
+        <div class="flex-grow-1 p-4" style="overflow-x: auto; background: #f4f7fa;">
+            <!-- TAB GRAFICOS -->
+            <div id="tab-graficos" class="admin-tab">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="text-dark fw-bold m-0"><i class="fas fa-chart-pie text-primary me-2"></i> Panel de Estadísticas</h4>
+                    <button class="btn btn-sm btn-primary shadow-sm rounded-pill px-3" onclick="cargarDatos()"><i class="fas fa-sync-alt me-1"></i> Actualizar Datos</button>
                 </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="card widget-card h-100 p-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box bg-light-primary me-3">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1 fw-bold">Total Jugadores</h6>
+                                    <h3 class="mb-0 fw-bolder text-dark" id="widget-total-jugadores">--</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card widget-card h-100 p-3" style="border-left-color: var(--success-color);">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box bg-light-success me-3">
+                                    <i class="fas fa-school"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1 fw-bold">Instituciones</h6>
+                                    <h3 class="mb-0 fw-bolder text-dark" id="widget-total-instituciones">--</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card widget-card h-100 p-3" style="border-left-color: var(--secondary-color);">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box bg-light-warning me-3">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1 fw-bold">Delegados</h6>
+                                    <h3 class="mb-0 fw-bolder text-dark" id="widget-total-delegados">--</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" id="graficos-grid-container">
+                    <!-- Los gráficos dinámicos se insertarán aquí por JavaScript -->
+                </div>
+            </div>
+
+            <!-- TAB JUGADORES -->
+            <div id="tab-jugadores" class="admin-tab" style="display: none;">
+                <h4 class="mb-4 text-dark"><i class="fas fa-users"></i> Gestión de Jugadores</h4>
+                <div class="card shadow border-0">
+                    <div class="card-body p-4">
+                        <div class="row align-items-end mb-4">
+                            <div class="col-md-6">
+                                <div id="filter-container">
+                                    <label id="institucionFilterLabel" class="form-label fw-bold">Filtrar por Institución Educativa</label>
+                                    <select id="institucionFilter" class="form-select border-2">
+                                        <option value="">Cargando instituciones...</option>
+                                    </select>
+                                    <h4 id="delegadoInstitucionLabel" class="text-center fw-bold text-primary mt-2" style="display: none;"></h4>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-md-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end">
+                                <button class="btn btn-success fw-bold" onclick="abrirModalRegistro()">
+                                    <i class="fas fa-user-plus"></i> Nuevo Jugador
+                                </button>
+                                <button class="btn btn-primary fw-bold" onclick="cargarDatos()">
+                                    <i class="fas fa-sync-alt"></i> Actualizar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle rounded overflow-hidden">
+                                <thead class="table-primary text-center">
+                                    <tr>
+                                        <th>DNI</th>
+                                        <th>NOMBRE COMPLETO</th>
+                                        <th>Edad</th>
+                                        <th>Tipo</th>
+                                        <th>Género</th>
+                                        <th>Institución Educativa</th>
+                                        <th>Deportes a Participar</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-body" class="text-center">
+                                    <tr><td colspan="8" class="text-center py-4">Haz clic en Actualizar para cargar los datos</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CONFIGURACION -->
+            <div id="tab-configuracion" class="admin-tab" style="display: none;">
+                <h4 class="mb-4 text-dark"><i class="fas fa-cogs"></i> Configuración de Carnet</h4>
+                <div class="row">
+                    <!-- Cuadro 1: Título de encabezado -->
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white fw-bold"><i class="fas fa-heading"></i> Título de Encabezado</div>
+                            <div class="card-body">
+                                <div class="input-group">
+                                    <input type="text" id="config-titulo" class="form-control" placeholder="Ej. JUEGOS MAGISTERIALES 2026" disabled>
+                                    <button class="btn btn-warning text-white" id="btn-edit-titulo" onclick="toggleEditTitulo()"><i class="fas fa-edit"></i> Editar</button>
+                                    <button class="btn btn-success" id="btn-save-titulo" onclick="guardarConfigTitulo()" style="display: none;"><i class="fas fa-save"></i> Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cuadro 2: Color para el carnet (Frontal) -->
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white fw-bold text-primary"><i class="fas fa-palette"></i> Colores del Carnet (Frontal)</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Bordes Frontal</label>
+                                        <input type="color" id="color-bordes" class="form-control form-control-color w-100 color-input-front" value="#0044cc" disabled>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Texto Frontal</label>
+                                        <input type="color" id="color-texto" class="form-control form-control-color w-100 color-input-front" value="#0044cc" disabled>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Encabezado Arriba</label>
+                                        <input type="color" id="color-header-top" class="form-control form-control-color w-100 color-input-front" value="#0044cc" disabled>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Encabezado Abajo</label>
+                                        <input type="color" id="color-header-bottom" class="form-control form-control-color w-100 color-input-front" value="#ffaa00" disabled>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <button class="btn btn-warning text-white" id="btn-edit-colores-front" onclick="toggleEditColoresFront()"><i class="fas fa-edit"></i> Editar Frontal</button>
+                                    <button class="btn btn-success" id="btn-save-colores-front" onclick="guardarConfigColoresFront()" style="display: none;"><i class="fas fa-save"></i> Guardar Frontal</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cuadro 3: Color para el carnet (Reverso) -->
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white fw-bold text-success"><i class="fas fa-fill-drip"></i> Colores del Carnet (Reverso)</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Bordes Reverso</label>
+                                        <input type="color" id="color-back-bordes" class="form-control form-control-color w-100 color-input-back" value="#0044cc" disabled>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Fondo Arriba</label>
+                                        <input type="color" id="color-back-top" class="form-control form-control-color w-100 color-input-back" value="#0044cc" disabled>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Fondo Abajo / Oscuro</label>
+                                        <input type="color" id="color-back-bottom" class="form-control form-control-color w-100 color-input-back" value="#111111" disabled>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Detalles / Acento</label>
+                                        <input type="color" id="color-back-acento" class="form-control form-control-color w-100 color-input-back" value="#ffaa00" disabled>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <button class="btn btn-warning text-white" id="btn-edit-colores-back" onclick="toggleEditColoresBack()"><i class="fas fa-edit"></i> Editar Reverso</button>
+                                    <button class="btn btn-success" id="btn-save-colores-back" onclick="guardarConfigColoresBack()" style="display: none;"><i class="fas fa-save"></i> Guardar Reverso</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cuadro 4: Marca de agua de texto -->
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white fw-bold text-secondary"><i class="fas fa-font"></i> Marca de Agua (Texto Reverso)</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Texto repetitivo de fondo</label>
+                                        <input type="text" id="texto-watermark" class="form-control input-watermark" value="" placeholder="Ej: JUEGOS MAGISTERIALES" disabled>
+                                        <small class="text-muted">Si lo dejas vacío, se usará el Título de Encabezado por defecto.</small>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <button class="btn btn-warning text-white" id="btn-edit-watermark" onclick="toggleEditWatermark()"><i class="fas fa-edit"></i> Editar Marca de Agua</button>
+                                    <button class="btn btn-success" id="btn-save-watermark" onclick="guardarConfigWatermark()" style="display: none;"><i class="fas fa-save"></i> Guardar Marca de Agua</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cuadro 3: Listado de logos -->
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white fw-bold"><i class="fas fa-images"></i> Logos para el Carnet</div>
+                            <div class="card-body">
+                                <div class="row align-items-end mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Institución</label>
+                                        <select id="select-logo-inst" class="form-select">
+                                            <option value="PRINCIPAL">LOGO PRINCIPAL (Arriba Izquierda)</option>
+                                            <!-- Se llenará con las instituciones -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label">Logo (Fondo transparente)</label>
+                                        <input type="file" id="logo-file" class="form-control" accept="image/png, image/jpeg">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button class="btn btn-primary w-100" onclick="subirLogo()"><i class="fas fa-upload"></i> Subir Logo</button>
+                                    </div>
+                                </div>
+                                <hr>
+                                <h5>Logos Registrados</h5>
+                                <div id="galeria-logos" class="row row-cols-2 row-cols-md-4 g-4 mt-2">
+                                    <div class="col-12 text-center">Cargando logos...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB ADMINISTRADORES -->
+            <div id="tab-administradores" class="admin-tab" style="display: none;">
+                <h4 class="mb-4 text-dark"><i class="fas fa-user-shield"></i> Gestión de Administradores</h4>
+                <div class="alert alert-info">Gestiona los administradores directamente desde la hoja de cálculo <b>Admin</b>.</div>
+            </div>
+
+            <!-- TAB DELEGADOS -->
+            <div id="tab-delegados" class="admin-tab" style="display: none;">
+                <h4 class="mb-4 text-dark"><i class="fas fa-user-tie"></i> Gestión de Delegados</h4>
+                <div class="card shadow border-0">
+                    <div class="card-body p-4">
+                        <div class="text-end mb-3">
+                            <button class="btn btn-primary fw-bold me-2" onclick="cargarDelegados()">
+                                <i class="fas fa-sync-alt"></i> Actualizar
+                            </button>
+                            <button class="btn btn-success fw-bold px-4 py-2" onclick="abrirModalDelegado()">
+                                <i class="fas fa-plus-circle"></i> Registrar Nuevo Delegado
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle rounded overflow-hidden">
+                                <thead class="table-primary text-center">
+                                    <tr>
+                                        <th>DNI</th>
+                                        <th>NOMBRE COMPLETO</th>
+                                        <th>CONTRASEÑA</th>
+                                        <th>INSTITUCIÓN EDUCATIVA</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-delegados" class="text-center">
+                                    <tr><td colspan="5" class="text-center py-4">Haz clic en Actualizar para cargar los datos</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB INSTITUCIONES -->
+            <div id="tab-instituciones" class="admin-tab" style="display: none;">
+                <h4 class="mb-4 text-dark"><i class="fas fa-school"></i> Gestión de Instituciones</h4>
+                <div class="card shadow border-0">
+                    <div class="card-body p-4">
+                        <div class="text-end mb-3">
+                            <button class="btn btn-primary fw-bold me-2" onclick="cargarInstituciones()">
+                                <i class="fas fa-sync-alt"></i> Actualizar
+                            </button>
+                            <button class="btn btn-success fw-bold px-4 py-2" onclick="abrirModalInstitucion()">
+                                <i class="fas fa-plus-circle"></i> Registrar Nueva Institución
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle rounded overflow-hidden">
+                                <thead class="table-primary text-center">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>NOMBRE DE INSTITUCIÓN</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-instituciones" class="text-center">
+                                    <tr><td colspan="3" class="text-center py-4">Haz clic en Actualizar para cargar los datos</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Visor Carnet -->
+<div class="modal fade" id="carnetModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: transparent; border: none;">
+            <div class="modal-header border-0 pb-0 justify-content-end">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <div id="carnet-horizontal-render" style="margin: 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center;">
+                    <!-- Se llenará vía JS -->
+                </div>
+                <button class="btn btn-success mt-4 fw-bold shadow" onclick="descargarCarnet()">
+                    <i class="fas fa-download"></i> Descargar Cara Actual
+                </button>
             </div>
         </div>
     </div>
@@ -583,7 +1131,7 @@
 <div id="pdf-container" class="carnet-preview-container"></div>
 
 <!-- Modal Visor PDF -->
-<div class="modal fade" id="pdfModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="pdfModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
@@ -597,15 +1145,150 @@
     </div>
 </div>
 
+<!-- Modal Registro Admin (Ventana de Emergencia) -->
+<div class="modal fade" id="modalRegistroAdmin" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 550px;">
+        <div class="modal-content" style="background: transparent; border: none; box-shadow: none;">
+            <div class="modal-header border-0 pb-0 justify-content-end" style="position: absolute; right: 15px; top: 15px; z-index: 1055;">
+                <button type="button" class="btn-close btn-close-dark bg-white" data-bs-dismiss="modal" aria-label="Close" style="border-radius: 50%; opacity: 0.8; padding: 10px;"></button>
+            </div>
+            <div class="modal-body p-0" id="modal-body-registro">
+                <!-- El form-container se moverá aquí -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Registro Delegado -->
+<div class="modal fade" id="modalRegistroDelegado" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="modal-header bg-primary text-white text-center">
+                <h5 class="modal-title w-100 fw-bold"><i class="fas fa-user-tie"></i> REGISTRAR DELEGADO</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <form id="registroDelegadoForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">DNI <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="del_dni" required pattern="[0-9]{8}" maxlength="8" placeholder="8 dígitos">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nombre Completo <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="del_nombre" required placeholder="Ej. Juan Pérez">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Contraseña <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="del_pass" required placeholder="Crea una contraseña">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Institución Educativa <span class="text-danger">*</span></label>
+                        <select class="form-select" id="del_inst" required>
+                            <option value="" disabled selected>Selecciona tu I.E.</option>
+                            <option value="I.E. “PARQUE INDUSTRIAL”">I.E. “PARQUE INDUSTRIAL”</option>
+                            <option value="I.E. “CESAR VALLEJO”">I.E. “CESAR VALLEJO”</option>
+                            <option value="I.E. “SAN ANTONIO DE ABAD” – “QUISTO CENTRAL”">I.E. “SAN ANTONIO DE ABAD” – “QUISTO CENTRAL”</option>
+                            <option value="I.E. “JOSÉ MARÍA ARGUEDAS”">I.E. “JOSÉ MARÍA ARGUEDAS”</option>
+                            <option value="I.E. N° 38990-A “MARAVILLA”">I.E. N° 38990-A “MARAVILLA”</option>
+                            <option value="I.E. ISAAC NEWTON">I.E. ISAAC NEWTON</option>
+                            <option value="I.E. N° 501345 – “CATARATA”">I.E. N° 501345 – “CATARATA”</option>
+                            <option value="I.E. “BARTOLOMÉ HERRERA”">I.E. “BARTOLOMÉ HERRERA”</option>
+                            <option value="I.E. “SIMÓN BOLÍVAR”">I.E. “SIMÓN BOLÍVAR”</option>
+                            <option value="I.E. N° 38968 – “QUISTO CENTRAL”">I.E. N° 38968 – “QUISTO CENTRAL”</option>
+                            <option value="I.E. N° 38709 – “TERESA”">I.E. N° 38709 – “TERESA”</option>
+                            <option value="I.E. DE “NATIVIDAD”">I.E. DE “NATIVIDAD”</option>
+                            <option value="I.E. N° 38990-B “SANKIROSHI”">I.E. N° 38990-B “SANKIROSHI”</option>
+                            <option value="I.E. N° 38824 – “TARANCATO”">I.E. N° 38824 – “TARANCATO”</option>
+                            <option value="I.E. N° 38776 – “OTARI SAN MARTÍN”">I.E. N° 38776 – “OTARI SAN MARTÍN”</option>
+                            <option value="I.E. DE SAN CRISTOBAL">I.E. DE SAN CRISTOBAL</option>
+                            <option value="I.E. “LA VERDAD”">I.E. “LA VERDAD”</option>
+                            <option value="I.E.P. “MARÍA MONTESSORI”">I.E.P. “MARÍA MONTESSORI”</option>
+                            <option value="Otros">Otros...</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2"><i class="fas fa-save me-2"></i> Guardar Delegado</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Registro Institucion -->
+<div class="modal fade" id="modalRegistroInstitucion" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="modal-header bg-success text-white text-center">
+                <h5 class="modal-title w-100 fw-bold"><i class="fas fa-school"></i> INSTITUCIÓN EDUCATIVA</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <form id="registroInstitucionForm">
+                    <input type="hidden" id="inst_id">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Nombre de la Institución <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="inst_nombre" required placeholder="Ej. I.E. NUEVA ESPERANZA">
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold py-2"><i class="fas fa-save me-2"></i> Guardar Institución</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
     <script>
         // ==========================================
         // URL GLOBAL DE APPS SCRIPT
         // ==========================================
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyCvYmH1wmIVv2D85ghBmpS3JPER4_MfWBYbHbym2_RvW0fAE_bDuvTkzP0IKL__FVj/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwUletw_8yCGxlmWOW8zSaXk9GeDrS50MZxScKTWYKSjYGZDiK8bDz3ZFp03mwjuQr4/exec';
 
         let dnisRegistradosGlobal = [];
 
         window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.has('scan')) {
+                const dniScan = urlParams.get('scan');
+                document.getElementById('view-registro').style.display = 'none';
+                
+                const loadingOverlay = document.getElementById('loading');
+                document.getElementById('loading-text-msg').innerText = "Cargando perfil...";
+                loadingOverlay.style.display = 'flex';
+                
+                // Cargar datos
+                fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: 'get_all' }) })
+                .then(r => r.json())
+                .then(data => {
+                    loadingOverlay.style.display = 'none';
+                    if(data.status === 'success') {
+                        const j = data.data.find(x => x.dni === dniScan);
+                        if(j) {
+                            let foto = j.fotoBase64 || 'https://via.placeholder.com/150';
+                            document.body.innerHTML = `
+                                <div style="min-height: 100vh; background: #f4f6f9; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: 'Poppins', sans-serif;">
+                                    <div style="background: white; border-radius: 15px; width: 100%; max-width: 400px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;">
+                                        <img src="${foto}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 4px solid #0044cc; margin-bottom: 15px;">
+                                        <h3 style="margin: 0; color: #333;">${j.nombres}</h3>
+                                        <p style="color: #666; margin-bottom: 20px; font-weight: bold;">DNI: ${j.dni}</p>
+                                        
+                                        <div style="background: #f8fbff; border-radius: 10px; padding: 15px; text-align: left; margin-bottom: 20px;">
+                                            <p style="margin: 0 0 10px 0;"><strong>I.E:</strong> ${j.institucion}</p>
+                                            <p style="margin: 0 0 10px 0;"><strong>Edad:</strong> ${j.edad} | <strong>Tipo:</strong> ${j.tipo} | <strong>Género:</strong> ${j.genero}</p>
+                                            <p style="margin: 0;"><strong>Deportes:</strong> ${j.deportes}</p>
+                                        </div>
+                                        
+                                        <button class="btn btn-primary w-100 py-3 fw-bold" onclick="verPdfScanner('${j.dni}')" style="border-radius: 10px;">
+                                            <i class="fas fa-file-pdf me-2"></i> Ver Documento (PDF)
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            document.body.innerHTML = '<h2 style="text-align:center; padding: 50px;">Jugador no encontrado</h2>';
+                        }
+                    }
+                });
+                return;
+            }
+
             fetch(scriptURL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'get_dnis_registrados' })
@@ -616,7 +1299,55 @@
                     dnisRegistradosGlobal = data.dnis;
                 }
             }).catch(e => console.log('Error silently loading dnis', e));
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'get_instituciones' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    allInstituciones = data.data;
+                    actualizarSelectsInstituciones();
+                }
+            }).catch(e => console.log('Error silently loading instituciones', e));
         });
+
+        function verPdfScanner(dni) {
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.innerHTML = '<div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; color:white; font-size:24px;">Cargando PDF...</div>';
+            document.body.appendChild(loadingOverlay);
+            
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: 'get_pdf', dni: dni }) })
+            .then(r => r.json())
+            .then(data => {
+                loadingOverlay.remove();
+                if(data.status === 'success' && data.pdfBase64) {
+                    let url = data.pdfBase64;
+                    let idMatch = url.match(/id=([-\w]{25,})/);
+                    if(idMatch && idMatch[1]) {
+                        url = `https://drive.google.com/file/d/${idMatch[1]}/preview`;
+                    }
+                    
+                    const div = document.createElement('div');
+                    div.style.position = 'fixed';
+                    div.style.top = '0'; div.style.left = '0';
+                    div.style.width = '100%'; div.style.height = '100%';
+                    div.style.background = '#000';
+                    div.style.zIndex = '10000';
+                    div.innerHTML = `
+                        <div style="background: #333; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: white; font-weight: bold;"><i class="fas fa-file-pdf"></i> Documento</span>
+                            <button onclick="this.parentElement.parentElement.remove()" style="background: transparent; border: none; color: white; font-size: 20px;"><i class="fas fa-times"></i></button>
+                        </div>
+                        <iframe src="${url}" style="width: 100%; height: calc(100% - 60px); border: none;"></iframe>
+                    `;
+                    document.body.appendChild(div);
+                } else {
+                    alert("No se encontró el documento PDF.");
+                }
+            });
+        }
 
         function openPhotoModal() {
             Swal.fire({
@@ -850,16 +1581,29 @@
             }
             const deportesSeleccionados = Array.from(deportesCheckboxes).map(cb => cb.value).join(', ');
 
-            if (!foto) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Falta Foto',
-                    text: 'Es obligatorio tomarte o adjuntar una foto para tu carnet.',
-                    confirmButtonColor: '#ffaa00'
-                });
-                return;
+            if (!window.modoEdicionAdmin) {
+                if (!foto) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Falta Foto',
+                        text: 'Es obligatorio tomarte o adjuntar una foto para tu carnet.',
+                        confirmButtonColor: '#ffaa00'
+                    });
+                    return;
+                }
+                
+                if (!file) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Falta Documento',
+                        text: 'Es obligatorio adjuntar tu archivo en formato PDF.',
+                        confirmButtonColor: '#ffaa00'
+                    });
+                    return;
+                }
             }
-            if (foto.type && !foto.type.startsWith("image/")) {
+
+            if (foto && foto.type && !foto.type.startsWith("image/")) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Formato Inválido',
@@ -868,18 +1612,8 @@
                 });
                 return;
             }
-
-            if (!file) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Falta Documento',
-                    text: 'Es obligatorio adjuntar tu archivo en formato PDF.',
-                    confirmButtonColor: '#ffaa00'
-                });
-                return;
-            }
             
-            if (file.type && file.type !== "application/pdf") {
+            if (file && file.type && file.type !== "application/pdf") {
                 Swal.fire({
                     icon: 'error',
                     title: 'Formato Inválido',
@@ -893,6 +1627,10 @@
             const loadingText = document.getElementById('loading-text-msg');
 
             const readFile = (f) => new Promise((resolve, reject) => {
+                if (!f) {
+                    resolve('');
+                    return;
+                }
                 const reader = new FileReader();
                 reader.onload = (e) => resolve(e.target.result);
                 reader.onerror = (e) => reject("Error al leer el archivo");
@@ -912,21 +1650,26 @@
 
                 const payload = {
                     dni: document.getElementById('dni').value,
+                    oldDni: document.getElementById('registroForm').dataset.oldDni || '',
                     nombres: document.getElementById('nombres').value,
                     edad: document.getElementById('edad').value,
                     tipo: document.getElementById('tipo').value,
+                    genero: document.getElementById('genero').value,
                     institucion: institucionFinal,
                     deportes: deportesSeleccionados,
                     archivoBase64: base64DataPdf,
-                    nombreArchivo: file.name,
-                    mimeType: file.type || "application/pdf",
+                    nombreArchivo: file ? file.name : '',
+                    mimeType: file ? file.type : "application/pdf",
                     fotoBase64: base64DataFoto,
-                    nombreFoto: foto.name,
-                    mimeTypeFoto: foto.type || "image/jpeg"
+                    nombreFoto: foto ? foto.name : '',
+                    mimeTypeFoto: foto ? foto.type : "image/jpeg"
                 };
 
                 // Función recursiva para enviar datos (con opción a actualizar)
                 function sendToServer(actionType) {
+                    if(window.modoEdicionAdmin) {
+                        actionType = 'update'; // Forzar actualización si estamos en modo edición
+                    }
                     payload.action = actionType;
                     
                     loadingText.innerText = actionType === 'update' ? "ACTUALIZANDO DATOS..." : "ENVIANDO REGISTRO...";
@@ -934,6 +1677,8 @@
 
                     fetch(scriptURL, {
                         method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'text/plain' },
                         body: JSON.stringify(payload)
                     })
                     .then(response => response.json())
@@ -941,6 +1686,18 @@
                         loadingOverlay.style.display = 'none';
 
                         if(data.status === 'success') {
+                            if (institucionSelect === 'Otros' && institucionOtro.trim() !== '') {
+                                fetch(scriptURL, {
+                                    method: 'POST',
+                                    mode: 'cors',
+                                    headers: { 'Content-Type': 'text/plain' },
+                                    body: JSON.stringify({
+                                        action: 'register_institucion',
+                                        nombreInstitucion: institucionOtro
+                                    })
+                                }).catch(e => console.error("Error silencioso al registrar nueva institución", e));
+                            }
+                            
                             // CONFETTI
                             var duration = 3000;
                             var end = Date.now() + duration;
@@ -954,7 +1711,7 @@
                                 icon: 'success',
                                 title: actionType === 'update' ? '¡ACTUALIZACIÓN EXITOSA!' : '¡INSCRIPCIÓN EXITOSA!',
                                 html: actionType === 'update' 
-                                      ? 'Se han reemplazado tus datos y tus archivos correctamente.' 
+                                      ? 'Se han reemplazado tus datos correctamente.' 
                                       : 'Tus datos se han registrado correctamente.<br><b>¡Bienvenido a los Juegos Magisteriales 2026!</b>',
                                 confirmButtonColor: '#00c853',
                                 confirmButtonText: 'Aceptar',
@@ -966,9 +1723,19 @@
                             document.getElementById('foto-name-display').innerHTML = '<i class="fas fa-camera"></i> Tomar o Subir Foto';
                             document.getElementById('institucion_otro_group').style.display = 'none';
                             document.getElementById('institucion_otro').required = false;
+                            
+                            // Si el registro se hizo desde el modal en el admin, cerrarlo y actualizar tabla
+                            const modalAdminEl = document.getElementById('modalRegistroAdmin');
+                            if(modalAdminEl && modalAdminEl.classList.contains('show')) {
+                                const modalInstance = bootstrap.Modal.getInstance(modalAdminEl);
+                                if (modalInstance) {
+                                    modalInstance.hide();
+                                }
+                                cargarDatos();
+                            }
                         
-                        } else if (data.status === 'duplicate') {
-                            // DNI DUPLICADO - MOSTRAR OPCIÓN DE ACTUALIZAR
+                        } else if (data.status === 'duplicate' && !window.modoEdicionAdmin) {
+                            // DNI DUPLICADO - MOSTRAR OPCIÓN DE ACTUALIZAR (solo si no estamos ya en modo edición)
                             Swal.fire({
                                 icon: 'warning',
                                 title: 'DNI Registrado',
@@ -988,7 +1755,7 @@
                             // OTRO ERROR
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Registro Denegado',
+                                title: 'Error',
                                 text: data.message,
                                 confirmButtonColor: '#d33',
                                 confirmButtonText: 'Entendido'
@@ -1026,30 +1793,98 @@
         
         let allData = [];
         let html5QrCode = null;
+        let currentAdminRol = '';
+        let currentAdminInstitucion = '';
 
-        function switchView(view, tab) {
-            if (view === 'admin') {
-                document.getElementById('view-registro').style.display = 'none';
-                document.getElementById('view-admin').style.display = 'block';
-                
-                if (tab === 'escaner') {
-                    const triggerEl = document.querySelector('#pills-escaner-tab');
-                    const tabInstance = bootstrap.Tab.getInstance(triggerEl) || new bootstrap.Tab(triggerEl);
-                    tabInstance.show();
-                    iniciarEscaner();
-                } else {
-                    const triggerEl = document.querySelector('#pills-listado-tab');
-                    const tabInstance = bootstrap.Tab.getInstance(triggerEl) || new bootstrap.Tab(triggerEl);
-                    tabInstance.show();
-                    detenerEscaner();
-                    if (allData.length === 0) {
-                        cargarDatos();
-                    }
+        window.modoEdicionAdmin = false;
+
+        function abrirModalDelegado() {
+            document.getElementById('registroDelegadoForm').reset();
+            const modalEl = document.getElementById('modalRegistroDelegado');
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+
+        function abrirModalRegistro() {
+            window.modoEdicionAdmin = false;
+            document.getElementById('registroForm').reset();
+            document.getElementById('registroForm').dataset.oldDni = '';
+            
+            // Reset titles and buttons
+            document.querySelector('.header-title').innerText = "Juegos Magisteriales 2026";
+            document.querySelector('.header-subtitle').innerText = "Inscripción Oficial";
+            document.querySelector('.btn-register').innerHTML = '<i class="fas fa-paper-plane me-2"></i> Confirmar Inscripción';
+            document.getElementById('dni').readOnly = false;
+            
+            document.getElementById('file-name-display').innerHTML = '<i class="fas fa-file-upload"></i> Subir archivo PDF';
+            document.getElementById('foto-name-display').innerHTML = '<i class="fas fa-camera"></i> Tomar o Subir Foto';
+            document.getElementById('archivo').required = true;
+            document.getElementById('foto').required = false;
+            document.getElementById('institucion_otro_group').style.display = 'none';
+            document.getElementById('institucion_otro').required = false;
+            
+            const selectInst = document.getElementById('institucion_select');
+            if (currentAdminRol === 'Delegado') {
+                if (!Array.from(selectInst.options).find(opt => opt.value === currentAdminInstitucion)) {
+                    selectInst.innerHTML += `<option value="${currentAdminInstitucion}">${currentAdminInstitucion}</option>`;
                 }
+                selectInst.value = currentAdminInstitucion;
+                selectInst.disabled = true;
             } else {
-                document.getElementById('view-registro').style.display = 'flex';
-                document.getElementById('view-admin').style.display = 'none';
-                detenerEscaner();
+                selectInst.disabled = false;
+            }
+
+            const formContainer = document.querySelector('.form-container');
+            const modalBody = document.getElementById('modal-body-registro');
+            
+            // Mover el formulario al modal
+            modalBody.appendChild(formContainer);
+            
+            const modalEl = document.getElementById('modalRegistroAdmin');
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+            
+            // Cuando se cierre el modal, devolver el formulario a su lugar original
+            modalEl.addEventListener('hidden.bs.modal', function onHidden() {
+                const warningMsg = document.getElementById('warning-edicion-archivos');
+                if (warningMsg) warningMsg.remove();
+                document.getElementById('view-registro').appendChild(formContainer);
+                modalEl.removeEventListener('hidden.bs.modal', onHidden);
+            });
+        }
+
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.style.width === '250px') {
+                sidebar.style.width = '0px';
+                sidebar.style.overflow = 'hidden';
+            } else {
+                sidebar.style.width = '250px';
+            }
+        });
+
+        function showTab(tabId) {
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            document.getElementById('tab-' + tabId).style.display = 'block';
+            
+            if (tabId === 'graficos') renderGraficos();
+            if (tabId === 'configuracion') cargarConfiguracion();
+            if (tabId === 'delegados') cargarDelegados();
+            if (tabId === 'instituciones') cargarInstituciones();
+        }
+
+        function switchView(view) {
+            document.getElementById('view-registro').style.display = view === 'registro' ? 'flex' : 'none';
+            document.getElementById('view-login').style.display = view === 'login' ? 'flex' : 'none';
+            document.getElementById('view-admin').style.display = view === 'admin' ? 'block' : 'none';
+            if(document.getElementById('view-scanner')) {
+                document.getElementById('view-scanner').style.display = view === 'scanner' ? 'block' : 'none';
+            }
+            
+            if (view === 'admin') {
+                cargarDatos();
             }
         }
 
@@ -1059,52 +1894,53 @@
             loadingText.innerText = 'Obteniendo datos...';
             loadingOverlay.style.display = 'flex';
             
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 seg timeout
+            const reqData = fetch(scriptURL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'get_all' }) }).then(r => r.json());
+            const reqConfig = fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: 'get_config' }) }).then(r => r.json());
+            const reqDelegados = fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: 'get_delegados' }) }).then(r => r.json());
+            const reqInsts = fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: 'get_instituciones' }) }).then(r => r.json());
             
-            fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'get_all' }),
-                signal: controller.signal
-            })
-            .then(res => {
-                clearTimeout(timeoutId);
-                return res.text();
-            })
-            .then(text => {
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch(e) {
-                    console.error("Respuesta cruda del servidor:", text);
-                    throw new Error("Respuesta no JSON: " + text.substring(0, 100));
-                }
+            Promise.all([reqData, reqConfig, reqDelegados, reqInsts])
+            .then(results => {
+                const [dataRes, configRes, delRes, instRes] = results;
                 
                 loadingOverlay.style.display = 'none';
-                if(data.status === 'success') {
-                    allData = Array.isArray(data.data) ? data.data : [];
-                    actualizarFiltro();
-                    renderTabla(allData);
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Datos actualizados', showConfirmButton: false, timer: 1500 });
+                
+                if(dataRes.status === 'success') allData = Array.isArray(dataRes.data) ? dataRes.data : [];
+                else allData = [];
+                
+                if(configRes.status === 'success') configData = configRes.config || configData;
+                
+                if(delRes.status === 'success') {
+                    allDelegados = delRes.data;
+                    renderTablaDelegados(allDelegados);
+                }
+                
+                if(instRes.status === 'success') {
+                    allInstituciones = instRes.data;
+                    renderTablaInstituciones(allInstituciones);
+                    actualizarSelectsInstituciones();
+                }
+                actualizarFiltro();
+                if (currentAdminRol === 'Delegado') {
+                    const instLower = String(currentAdminInstitucion).trim().toLowerCase();
+                    renderTabla(allData.filter(x => String(x.institucion).trim().toLowerCase() === instLower));
                 } else {
-                    Swal.fire('Error del servidor', data.message || 'Ocurrió un error inesperado.', 'error');
-                    allData = [];
-                    actualizarFiltro();
                     renderTabla(allData);
                 }
+                
+                // Si es administrador, renderGraficos ya fue llamado por switchView, 
+                // pero si es delegado, actualizamos los graficos o no importa porque no lo ve.
+                renderGraficos();
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Datos actualizados', showConfirmButton: false, timer: 1500 });
             })
             .catch(err => {
-                clearTimeout(timeoutId);
                 loadingOverlay.style.display = 'none';
                 console.error("Error Fetch:", err);
-                
-                let errorMsg = err.message || 'Error desconocido';
-                if (err.name === 'AbortError') errorMsg = 'El servidor tardó más de 8 segundos en responder (Timeout).';
                 
                 Swal.fire({
                     icon: 'warning',
                     title: 'Apps Script falló',
-                    text: 'Detalle del error: ' + errorMsg + '. (Comprueba tu Apps Script)',
+                    text: 'Ocurrió un problema de conexión o timeout.',
                     confirmButtonText: 'Ver demo'
                 });
                 
@@ -1115,25 +1951,223 @@
                     { dni: '11112222', nombres: 'Carlos Ruiz (Demo)', institucion: 'I.E. “CESAR VALLEJO”', deportes: 'FUTSAL VARONES', fotoBase64: 'https://via.placeholder.com/150/00c853/ffffff?text=FOTO' }
                 ];
                 actualizarFiltro();
-                renderTabla(allData);
+                if (currentAdminRol === 'Delegado') {
+                    renderTabla(allData.filter(x => x.institucion === currentAdminInstitucion));
+                } else {
+                    renderTabla(allData);
+                }
+                renderGraficos();
+            });
+        }
+
+        let chartInstances = [];
+        function renderGraficos() {
+            const container = document.getElementById('graficos-grid-container');
+            if (!container) return;
+            
+            // Destruir gráficos anteriores
+            if (chartInstances && chartInstances.length > 0) {
+                chartInstances.forEach(c => c.destroy());
+            }
+            chartInstances = [];
+            
+            const stats = {};
+            let totalGeneral = 0;
+            let totalDelegados = 0;
+            
+            // Inicializar stats con todas las instituciones conocidas
+            if (allInstituciones) {
+                allInstituciones.forEach(inst => {
+                    stats[inst.nombre] = { total: 0, hombres: 0, mujeres: 0, delegados: [] };
+                });
+            }
+
+            // Llenar datos de delegados
+            if (allDelegados) {
+                allDelegados.forEach(d => {
+                    if (!stats[d.institucion]) {
+                        stats[d.institucion] = { total: 0, hombres: 0, mujeres: 0, delegados: [] };
+                    }
+                    stats[d.institucion].delegados.push(d.nombres);
+                    totalDelegados++;
+                });
+            }
+
+            // Llenar datos de jugadores
+            if (allData) {
+                allData.forEach(item => {
+                    if (!item.institucion) return;
+                    if (!stats[item.institucion]) {
+                        stats[item.institucion] = { total: 0, hombres: 0, mujeres: 0, delegados: [] };
+                    }
+                    stats[item.institucion].total++;
+                    totalGeneral++;
+                    if (item.genero === 'Hombre') stats[item.institucion].hombres++;
+                    else if (item.genero === 'Mujer') stats[item.institucion].mujeres++;
+                });
+            }
+            
+            // Actualizar widgets
+            const elTotalJugadores = document.getElementById('widget-total-jugadores');
+            const elTotalInst = document.getElementById('widget-total-instituciones');
+            const elTotalDel = document.getElementById('widget-total-delegados');
+            
+            if (elTotalJugadores) elTotalJugadores.innerText = totalGeneral;
+            if (elTotalInst) elTotalInst.innerText = Object.keys(stats).filter(k => stats[k].total > 0 || stats[k].delegados.length > 0).length || 0;
+            if (elTotalDel) elTotalDel.innerText = totalDelegados;
+            
+            if (Object.keys(stats).length === 0) {
+                container.innerHTML = '<div class="col-12"><div class="alert alert-warning">No hay datos para graficar ni instituciones registradas.</div></div>';
+                return;
+            }
+
+            let html = `<div class="row g-4 w-100">`;
+            
+            const instituciones = Object.keys(stats).sort((a,b) => stats[b].total - stats[a].total);
+            
+            instituciones.forEach((inst, index) => {
+                // Buscar logo de la institución para marca de agua
+                let watermarkUrl = '';
+                if (configData && configData.logos) {
+                    const logoObj = configData.logos.find(l => l.institucion === inst);
+                    if (logoObj) {
+                        let idMatch = logoObj.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                        let actualId = idMatch ? (idMatch[1] || idMatch[2]) : null;
+                        if(actualId) watermarkUrl = `https://lh3.googleusercontent.com/d/${actualId}=w400`;
+                    } else {
+                        const princ = configData.logos.find(l => l.institucion === 'PRINCIPAL');
+                        if(princ) {
+                            let idMatch = princ.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                            let actualId = idMatch ? (idMatch[1] || idMatch[2]) : null;
+                            if(actualId) watermarkUrl = `https://lh3.googleusercontent.com/d/${actualId}=w400`;
+                        }
+                    }
+                }
+                
+                html += `
+                    <div class="col-12 col-md-6 col-xl-4" style="animation: fadeIn 0.5s ease-out ${index * 0.1}s forwards; opacity: 0;">
+                        <div class="card border-0 h-100" style="border-radius: 18px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); position: relative; background: #fff;">
+                            
+                            <!-- Marca de Agua (Fondo) -->
+                            ${watermarkUrl ? `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; background-image: url('${watermarkUrl}'); background-size: contain; background-position: center; background-repeat: no-repeat; opacity: 0.05; pointer-events: none; z-index: 1; filter: grayscale(100%);"></div>` : ''}
+                            
+                            <!-- Borde superior deportivo -->
+                            <div style="height: 6px; width: 100%; background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); z-index: 2; position: relative;"></div>
+                            
+                            <div class="card-body position-relative p-4" style="z-index: 2; display: flex; flex-direction: column;">
+                                <h5 class="card-title fw-bold text-dark text-center text-uppercase" style="font-size: 1.1rem; line-height: 1.3; min-height: 2.6rem; margin-bottom: 15px;">${inst}</h5>
+                                
+                                <div class="text-center mb-2">
+                                    <div class="small fw-bold text-muted mb-1" style="font-size: 0.75rem;">DELEGADOS:</div>
+                                    <div style="font-size: 0.9rem; color: #333; line-height: 1.3;">
+                                        ${stats[inst].delegados.length > 0 ? stats[inst].delegados.map(d => `<i class="fas fa-user-tie text-success"></i> ${d}`).join('<br>') : '<span class="text-muted fst-italic" style="font-size: 0.8rem;">Sin delegado asignado</span>'}
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mb-3 mt-3">
+                                    <span class="badge text-dark" style="background: #f0f4f8; border: 1px solid #d0dbe5; padding: 6px 12px; font-size: 0.95rem; letter-spacing: 1px;">
+                                        <strong>${stats[inst].total}</strong> JUGADORES
+                                    </span>
+                                </div>
+                                
+                                <div style="flex-grow: 1; min-height: 150px; position: relative; display: flex; justify-content: center; align-items: center;">
+                                    <canvas id="chart-inst-${index}" style="max-height: 150px;"></canvas>
+                                    
+                                    <!-- Centro del Doughnut -->
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+                                        <i class="fas fa-trophy" style="font-size: 1.5rem; color: #e0e0e0;"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between mt-3 text-center fw-bold align-items-center" style="font-size: 0.95rem;">
+                                    <div style="color: var(--primary-color); background: rgba(0,68,204,0.05); padding: 8px 15px; border-radius: 10px; width: 48%;">
+                                        <i class="fas fa-male fs-4 d-block mb-1"></i> ${stats[inst].hombres}
+                                    </div>
+                                    <div style="color: var(--secondary-color); background: rgba(255,170,0,0.05); padding: 8px 15px; border-radius: 10px; width: 48%;">
+                                        <i class="fas fa-female fs-4 d-block mb-1"></i> ${stats[inst].mujeres}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            container.innerHTML = html;
+            
+            // Inicializar cada gráfico Chart.js
+            instituciones.forEach((inst, index) => {
+                const ctx = document.getElementById(`chart-inst-${index}`);
+                if(ctx) {
+                    const c = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Hombres', 'Mujeres'],
+                            datasets: [{
+                                data: [stats[inst].hombres, stats[inst].mujeres],
+                                backgroundColor: ['#0044cc', '#ffaa00'],
+                                borderWidth: 0,
+                                hoverOffset: 5
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '70%',
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return ' ' + context.label + ': ' + context.raw + ' jugadores';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    chartInstances.push(c);
+                }
             });
         }
 
         function actualizarFiltro() {
             const select = document.getElementById('institucionFilter');
+            const label = document.getElementById('institucionFilterLabel');
+            const delegLabel = document.getElementById('delegadoInstitucionLabel');
             const instituciones = [...new Set(allData.map(item => item.institucion))];
             
-            select.innerHTML = '<option value="TODAS">TODAS LAS INSTITUCIONES</option>';
-            instituciones.forEach(inst => {
-                if(inst) select.innerHTML += `<option value="${inst}">${inst}</option>`;
-            });
+            select.innerHTML = '';
+            if (currentAdminRol === 'Delegado') {
+                if(label) label.style.display = 'none';
+                if(select) select.style.display = 'none';
+                if(delegLabel) {
+                    delegLabel.style.display = 'block';
+                    delegLabel.innerHTML = '<i class="fas fa-school"></i> ' + currentAdminInstitucion;
+                }
+            } else {
+                if(label) label.style.display = 'block';
+                if(select) select.style.display = 'block';
+                if(delegLabel) delegLabel.style.display = 'none';
+
+                select.innerHTML = '<option value="TODAS">TODAS LAS INSTITUCIONES</option>';
+                instituciones.forEach(inst => {
+                    if(inst) {
+                        const safeInst = String(inst).replace(/"/g, '&quot;');
+                        select.innerHTML += `<option value="${safeInst}">${inst}</option>`;
+                    }
+                });
+                select.disabled = false;
+            }
 
             select.addEventListener('change', (e) => {
                 const val = e.target.value;
                 if(val === 'TODAS') {
                     renderTabla(allData);
                 } else {
-                    renderTabla(allData.filter(x => x.institucion === val));
+                    const instLower = String(val).trim().toLowerCase();
+                    renderTabla(allData.filter(x => String(x.institucion).trim().toLowerCase() === instLower));
                 }
             });
         }
@@ -1141,15 +2175,13 @@
         function renderTabla(datos) {
             const tbody = document.getElementById('tabla-body');
             tbody.innerHTML = '';
-            
             if(datos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No hay registros</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No hay registros</td></tr>';
                 return;
             }
 
             let htmlRows = '';
             datos.forEach(row => {
-                // Optimización para cargar imágenes de Google Drive en etiquetas <img>
                 let fotoSrc = row.fotoBase64 || 'https://via.placeholder.com/50?text=FOTO';
                 if(fotoSrc.includes('drive.google.com/uc')) {
                     const matchId = fotoSrc.match(/id=([-\w]{25,})/);
@@ -1160,235 +2192,1373 @@
 
                 htmlRows += `
                     <tr>
-                        <td><img src="${fotoSrc}" width="50" height="50" style="object-fit: cover; border-radius: 5px;" loading="lazy" onerror="this.src='https://via.placeholder.com/50?text=Error'"></td>
                         <td class="fw-bold">${row.dni}</td>
                         <td>${row.nombres}</td>
+                        <td>${row.edad || '-'}</td>
+                        <td><span class="text-primary fw-bold">${row.tipo || '-'}</span></td>
+                        <td>${row.genero || '-'}</td>
                         <td>${row.institucion}</td>
-                        <td><small>${row.edad || '-'} <br> <span class="text-primary">${row.tipo || '-'}</span></small></td>
                         <td><span class="badge bg-secondary">${row.deportes}</span></td>
+                        <td>
+                            <div class="d-flex gap-2 justify-content-center">
+                                ${currentAdminRol !== 'Delegado' ? `<button class="btn btn-sm btn-info text-white" onclick="verCarnet('${row.dni}')" title="Ver Carnet"><i class="fas fa-id-badge"></i> Carnet</button>` : ''}
+                                <button class="btn btn-sm btn-danger text-white" onclick="verPdfScanner('${row.dni}')" title="Ver PDF"><i class="fas fa-file-pdf"></i></button>
+                                <button class="btn btn-sm btn-warning text-white" onclick="editarJugador('${row.dni}')" title="Editar"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="eliminarJugador('${row.dni}')" title="Eliminar"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
                     </tr>
                 `;
             });
             tbody.innerHTML = htmlRows;
         }
 
-        async function generarPDF() {
-            const val = document.getElementById('institucionFilter').value;
-            let datosFiltro = allData;
-            if(val !== 'TODAS' && val !== '') {
-                datosFiltro = allData.filter(x => x.institucion === val);
+        // ==========================
+        // LÓGICA CONFIGURACIÓN
+        // ==========================
+        let configData = { titulo: '', colores: {}, logos: [] };
+        
+        function cargarConfiguracion() {
+            // Actualizar select de instituciones
+            const selectInst = document.getElementById('select-logo-inst');
+            let insts = [];
+            if (typeof allInstituciones !== 'undefined' && allInstituciones.length > 0) {
+                insts = allInstituciones.map(inst => inst.nombre);
+            } else if (typeof allData !== 'undefined') {
+                insts = [...new Set(allData.map(item => item.institucion))].filter(Boolean);
+            }
+            if (selectInst) {
+                selectInst.innerHTML = '<option value="PRINCIPAL">LOGO PRINCIPAL (Arriba Izquierda)</option>';
+                insts.forEach(i => {
+                    selectInst.innerHTML += `<option value="${i}">${i}</option>`;
+                });
             }
 
-            if(datosFiltro.length === 0) {
-                Swal.fire('Vacío', 'No hay datos para generar carnets.', 'info');
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'get_config' })
+            }).then(r => r.json()).then(data => {
+                if(data.status === 'success') {
+                    configData = data.config || configData;
+                    
+                    document.getElementById('config-titulo').value = configData.titulo || '';
+                    if(configData.colores) {
+                        if(configData.colores.bordes) document.getElementById('color-bordes').value = configData.colores.bordes;
+                        if(configData.colores.texto) document.getElementById('color-texto').value = configData.colores.texto;
+                        if(configData.colores.headerTop) document.getElementById('color-header-top').value = configData.colores.headerTop;
+                        if(configData.colores.headerBottom) document.getElementById('color-header-bottom').value = configData.colores.headerBottom;
+                        
+                        if(configData.colores.backBordes) document.getElementById('color-back-bordes').value = configData.colores.backBordes;
+                        else document.getElementById('color-back-bordes').value = configData.colores.bordes || '#0044cc';
+
+                        if(configData.colores.backTop) document.getElementById('color-back-top').value = configData.colores.backTop;
+                        else document.getElementById('color-back-top').value = configData.colores.headerTop || '#0044cc';
+
+                        if(configData.colores.backBottom) document.getElementById('color-back-bottom').value = configData.colores.backBottom;
+                        else document.getElementById('color-back-bottom').value = '#111111';
+
+                        if(configData.colores.backAcento) document.getElementById('color-back-acento').value = configData.colores.backAcento;
+                        else document.getElementById('color-back-acento').value = configData.colores.headerBottom || '#ffaa00';
+                        
+                        document.getElementById('texto-watermark').value = configData.colores.watermarkText || '';
+                    }
+                    
+                    renderLogos(configData.logos || []);
+                }
+            });
+        }
+
+        function toggleEditTitulo() {
+            const input = document.getElementById('config-titulo');
+            const btnSave = document.getElementById('btn-save-titulo');
+            const btnEdit = document.getElementById('btn-edit-titulo');
+            
+            if(input.disabled) {
+                input.disabled = false;
+                btnEdit.style.display = 'none';
+                btnSave.style.display = 'inline-block';
+                input.focus();
+            }
+        }
+        function guardarConfigTitulo() {
+            const titulo = document.getElementById('config-titulo').value;
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if(loadingOverlay) loadingOverlay.style.display = 'flex';
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'save_config', tipo: 'titulo', valor: titulo })
+            }).then(r => r.json()).then(data => {
+                if(loadingOverlay) loadingOverlay.style.display = 'none';
+                if(data.status === 'success') {
+                    Swal.fire('Éxito', 'Título guardado', 'success');
+                    document.getElementById('config-titulo').disabled = true;
+                    document.getElementById('btn-edit-titulo').style.display = 'inline-block';
+                    document.getElementById('btn-save-titulo').style.display = 'none';
+                    configData.titulo = titulo;
+                }
+            });
+        }
+
+        function toggleEditColoresFront() {
+            const inputs = document.querySelectorAll('.color-input-front');
+            document.getElementById('btn-edit-colores-front').style.display = 'none';
+            document.getElementById('btn-save-colores-front').style.display = 'inline-block';
+            inputs.forEach(inp => inp.disabled = false);
+        }
+
+        function guardarConfigColoresFront() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if(loadingOverlay) loadingOverlay.style.display = 'flex';
+            
+            const payload = Object.assign({}, configData.colores || {}, {
+                bordes: document.getElementById('color-bordes').value,
+                texto: document.getElementById('color-texto').value,
+                headerTop: document.getElementById('color-header-top').value,
+                headerBottom: document.getElementById('color-header-bottom').value
+            });
+
+            fetch(scriptURL, {
+                method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'save_config', tipo: 'colores', valor: JSON.stringify(payload) })
+            }).then(r => r.json()).then(data => {
+                if(loadingOverlay) loadingOverlay.style.display = 'none';
+                if(data.status === 'success') {
+                    Swal.fire('Éxito', 'Colores frontales guardados', 'success');
+                    document.querySelectorAll('.color-input-front').forEach(inp => inp.disabled = true);
+                    document.getElementById('btn-edit-colores-front').style.display = 'inline-block';
+                    document.getElementById('btn-save-colores-front').style.display = 'none';
+                    configData.colores = payload;
+                }
+            });
+        }
+
+        function toggleEditColoresBack() {
+            const inputs = document.querySelectorAll('.color-input-back');
+            document.getElementById('btn-edit-colores-back').style.display = 'none';
+            document.getElementById('btn-save-colores-back').style.display = 'inline-block';
+            inputs.forEach(inp => inp.disabled = false);
+        }
+
+        function guardarConfigColoresBack() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if(loadingOverlay) loadingOverlay.style.display = 'flex';
+            
+            const payload = Object.assign({}, configData.colores || {}, {
+                backBordes: document.getElementById('color-back-bordes').value,
+                backTop: document.getElementById('color-back-top').value,
+                backBottom: document.getElementById('color-back-bottom').value,
+                backAcento: document.getElementById('color-back-acento').value
+            });
+
+            fetch(scriptURL, {
+                method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'save_config', tipo: 'colores', valor: JSON.stringify(payload) })
+            }).then(r => r.json()).then(data => {
+                if(loadingOverlay) loadingOverlay.style.display = 'none';
+                if(data.status === 'success') {
+                    Swal.fire('Éxito', 'Colores del reverso guardados', 'success');
+                    document.querySelectorAll('.color-input-back').forEach(inp => inp.disabled = true);
+                    document.getElementById('btn-edit-colores-back').style.display = 'inline-block';
+                    document.getElementById('btn-save-colores-back').style.display = 'none';
+                    configData.colores = payload;
+                }
+            });
+        }
+
+        function toggleEditWatermark() {
+            const input = document.getElementById('texto-watermark');
+            document.getElementById('btn-edit-watermark').style.display = 'none';
+            document.getElementById('btn-save-watermark').style.display = 'inline-block';
+            input.disabled = false;
+            input.focus();
+        }
+
+        function guardarConfigWatermark() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if(loadingOverlay) loadingOverlay.style.display = 'flex';
+            
+            const payload = Object.assign({}, configData.colores || {}, {
+                watermarkText: document.getElementById('texto-watermark').value
+            });
+
+            fetch(scriptURL, {
+                method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'save_config', tipo: 'colores', valor: JSON.stringify(payload) })
+            }).then(r => r.json()).then(data => {
+                if(loadingOverlay) loadingOverlay.style.display = 'none';
+                if(data.status === 'success') {
+                    Swal.fire('Éxito', 'Marca de agua guardada', 'success');
+                    document.getElementById('texto-watermark').disabled = true;
+                    document.getElementById('btn-edit-watermark').style.display = 'inline-block';
+                    document.getElementById('btn-save-watermark').style.display = 'none';
+                    configData.colores = payload;
+                }
+            });
+        }
+
+        function subirLogo() {
+            const inst = document.getElementById('select-logo-inst').value;
+            const fileInput = document.getElementById('logo-file');
+            if(!fileInput.files[0]) return Swal.fire('Error', 'Selecciona un archivo', 'warning');
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = e => {
+                const base64 = e.target.result;
+                const loadingOverlay = document.getElementById('loading');
+                document.getElementById('loading-text-msg').innerText = "Subiendo logo...";
+                loadingOverlay.style.display = 'flex';
+                
+                fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'upload_logo', institucion: inst, base64: base64, nombre: file.name, mime: file.type })
+                }).then(r => r.json()).then(data => {
+                    loadingOverlay.style.display = 'none';
+                    if(data.status === 'success') {
+                        Swal.fire('Éxito', 'Logo subido', 'success');
+                        fileInput.value = '';
+                        cargarConfiguracion(); // Recargar
+                    }
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderLogos(logos) {
+            const galeria = document.getElementById('galeria-logos');
+            if(!galeria) return;
+            galeria.innerHTML = '';
+            if(logos.length === 0) {
+                galeria.innerHTML = '<div class="col-12 text-center text-muted">No hay logos registrados</div>';
                 return;
             }
-
-            const loadingOverlay = document.getElementById('loading');
-            const loadingText = document.getElementById('loading-text-msg');
-            loadingText.innerText = 'Preparando Carnets...';
-            loadingOverlay.style.display = 'flex';
-
-            const chunkSize = 8;
-            let fullPdfHtml = '';
-            for (let i = 0; i < datosFiltro.length; i += chunkSize) {
-                const chunk = datosFiltro.slice(i, i + chunkSize);
+            
+            let principalLogoUrl = null;
+            
+            logos.forEach(l => {
+                let isPrincipal = l.institucion === 'PRINCIPAL';
+                let idMatch = l.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                let actualId = idMatch ? (idMatch[1] || idMatch[2]) : null;
+                let imgUrl = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : l.url;
                 
-                let pageHtml = `<div class="pdf-page">`;
+                if (isPrincipal) principalLogoUrl = imgUrl;
                 
-                for (let j = 0; j < chunk.length; j++) {
-                    const p = chunk[j];
-                    
-                    const qrDiv = document.createElement('div');
-                    new QRCode(qrDiv, { text: p.dni, width: 128, height: 128 });
-                    const qrDataUrl = qrDiv.querySelector('canvas') ? qrDiv.querySelector('canvas').toDataURL() : '';
-
-                    let fotoSrc = p.fotoBase64 || 'https://via.placeholder.com/150?text=FOTO';
-                    if(fotoSrc.includes('drive.google.com/uc')) {
-                        const matchId = fotoSrc.match(/id=([-\w]{25,})/);
-                        if(matchId && matchId[1]) {
-                            fotoSrc = `https://drive.google.com/thumbnail?id=${matchId[1]}&sz=w400-h600`;
-                        }
-                    }
-
-                    pageHtml += `
-                        <div class="carnet">
-                            <div class="carnet-inner">
-                                <div class="carnet-header">Juegos Magisteriales 2026</div>
-                                <img class="carnet-photo" src="${fotoSrc}" alt="Foto" onerror="this.src='https://via.placeholder.com/150?text=Error'">
-                                <div class="carnet-data">
-                                    <div class="mb-1 text-center fw-bold" style="font-size:12px; color:#d32f2f;">${p.dni}</div>
-                                    <div class="mb-1" style="font-size:10px;"><strong>Nombres:</strong><br>${p.nombres}</div>
-                                    <div class="mb-1" style="font-size:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><strong>I.E:</strong> ${p.institucion}</div>
-                                    <div class="mb-1" style="font-size:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><strong>Dep:</strong> ${p.deportes}</div>
-                                </div>
-                                <img src="${qrDataUrl}" class="carnet-qr">
+                galeria.innerHTML += `
+                    <div class="col">
+                        <div class="card h-100 shadow-sm ${isPrincipal ? 'border-warning border-2' : ''}">
+                            <div class="card-body text-center p-3">
+                                <img src="${imgUrl}" class="img-fluid mb-2" style="max-height: 80px; object-fit: contain;">
+                                <h6 class="card-title text-truncate mb-1" title="${l.institucion}">${l.institucion}</h6>
+                                ${isPrincipal ? '<span class="badge bg-warning text-dark mb-2"><i class="fas fa-star"></i> Principal</span>' : '<span class="badge bg-secondary mb-2">Secundario</span>'}
+                            </div>
+                            <div class="card-footer bg-white border-top-0 p-2 text-center d-flex justify-content-between">
+                                ${!isPrincipal ? `<button class="btn btn-sm btn-outline-warning w-100 me-1" onclick="hacerLogoPrincipal('${l.id}')" title="Hacer Principal"><i class="fas fa-star"></i></button>` : '<div></div>'}
+                                <button class="btn btn-sm btn-outline-danger w-100 ms-1" onclick="eliminarLogo('${l.id}')" title="Eliminar"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>
-                    `;
-                }
+                    </div>
+                `;
+            });
+            
+            // Actualizar favicon si hay un logo principal
+            if (principalLogoUrl) {
+                let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+                link.type = 'image/png';
+                link.rel = 'shortcut icon';
+                link.href = principalLogoUrl;
+                document.getElementsByTagName('head')[0].appendChild(link);
                 
-                pageHtml += `</div>`;
-                fullPdfHtml += pageHtml;
+                // Actualizar marca de agua en scanner si existe
+                const watermark = document.getElementById('scanner-watermark');
+                if(watermark) {
+                    watermark.src = principalLogoUrl;
+                }
+                const resWatermark = document.getElementById('res-watermark');
+                if(resWatermark) {
+                    resWatermark.src = principalLogoUrl;
+                }
             }
-
-            // Construir la ventana de impresión nativa
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Carnets_${val === 'TODAS' ? 'Generales' : val}</title>
-                    <style>
-                        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #525659; }
-                        @page { size: A4 landscape; margin: 0; }
-                        .pdf-page {
-                            width: 297mm; min-height: 210mm;
-                            padding: 5mm; box-sizing: border-box;
-                            background: white;
-                            display: flex; flex-wrap: wrap; align-content: flex-start;
-                            margin: 20px auto;
-                            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-                            page-break-after: always;
-                        }
-                        .carnet {
-                            width: 71.75mm; height: 100mm;
-                            padding: 4mm; margin: 0;
-                            box-sizing: border-box; border: 1px dashed #ccc;
-                            page-break-inside: avoid; position: relative;
-                        }
-                        .carnet-inner {
-                            border: 2px solid #0044cc; border-radius: 8px; height: 100%;
-                            padding: 5px; text-align: center; position: relative;
-                            background: #fff;
-                        }
-                        .carnet-header { background: #0044cc; color: white; font-size: 11px; font-weight: bold; padding: 4px; border-radius: 4px; margin-bottom: 5px; text-transform: uppercase; }
-                        .carnet-photo { width: 35mm; height: 45mm; object-fit: cover; border: 2px solid #ffaa00; border-radius: 4px; margin: 0 auto 5px auto; display: block; }
-                        .carnet-data { text-align: left; line-height: 1.1; }
-                        .carnet-data strong { color: #0044cc; }
-                        .carnet-qr { position: absolute; bottom: 5px; right: 5px; width: 20mm; height: 20mm; background: white; padding: 2px; border-radius: 4px; }
-                        
-                        @media print {
-                            body { background: white; margin: 0; }
-                            .pdf-page { margin: 0; box-shadow: none; }
-                            .carnet-inner { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                            .carnet-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    ${fullPdfHtml}
-                    <script>
-                        window.onload = function() {
-                            setTimeout(function() {
-                                window.print();
-                            }, 800); // Esperar brevemente a que las fotos pinten
-                        }
-                    <\/script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            
-            loadingOverlay.style.display = 'none';
         }
-
-        // ESCÁNER
-
-        function iniciarEscaner() {
-            document.getElementById('btn-start-scan').style.display = 'none';
-            document.getElementById('btn-stop-scan').style.display = 'inline-block';
-            document.getElementById('scan-result').innerHTML = '';
-
-            html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-            
-            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
-            .catch(err => {
-                Swal.fire('Error', 'No se pudo iniciar la cámara trasera. Intenta de nuevo o verifica permisos.', 'error');
-                detenerEscaner();
-            });
-        }
-
-        function detenerEscaner() {
-            if(html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                }).catch(err => console.log(err));
-            }
-            document.getElementById('btn-start-scan').style.display = 'inline-block';
-            document.getElementById('btn-stop-scan').style.display = 'none';
-        }
-
-        function onScanSuccess(decodedText, decodedResult) {
-            detenerEscaner();
+        
+        function hacerLogoPrincipal(id) {
             Swal.fire({
-                title: 'Carnet Escaneado',
-                text: 'DNI Encontrado: ' + decodedText,
-                icon: 'success',
+                title: '¿Convertir en logo principal?',
+                text: "Esto reemplazará al logo principal actual y se usará en los carnets y como icono de la web.",
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'Ver Resolución (PDF)',
-                cancelButtonText: 'Escanear otro'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    buscarDocumentoPDF(decodedText);
-                } else {
-                    iniciarEscaner();
+                confirmButtonText: 'Sí, convertir',
+                cancelButtonText: 'Cancelar'
+            }).then(r => {
+                if(r.isConfirmed) {
+                    const loadingOverlay = document.getElementById('loading-overlay');
+                    if(loadingOverlay) loadingOverlay.style.display = 'flex';
+                    fetch(scriptURL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({ action: 'make_principal_logo', id: id })
+                    }).then(res => res.json()).then(data => {
+                        if(loadingOverlay) loadingOverlay.style.display = 'none';
+                        if(data.status === 'success') {
+                            Swal.fire('Éxito', 'El logo ahora es el principal', 'success');
+                            cargarConfiguracion(); // Recargar para actualizar la vista
+                        } else {
+                            Swal.fire('Error', data.message || 'No se pudo actualizar', 'error');
+                        }
+                    }).catch(err => {
+                        if(loadingOverlay) loadingOverlay.style.display = 'none';
+                        Swal.fire('Error', 'Problema de red', 'error');
+                    });
                 }
             });
         }
 
-        function buscarDocumentoPDF(dni) {
+        function eliminarLogo(id) {
+            Swal.fire({
+                title: '¿Eliminar logo?',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+            }).then(r => {
+                if(r.isConfirmed) {
+                    fetch(scriptURL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({ action: 'delete_logo', id: id })
+                    }).then(res => res.json()).then(data => {
+                        if(data.status === 'success') cargarConfiguracion();
+                    });
+                }
+            });
+        }
+
+        // ==========================================
+        // LÓGICA LOGIN
+        // ==========================================
+        function realizarLogin() {
+            const dni = document.getElementById('login_dni').value;
+            const pass = document.getElementById('login_pass').value;
+            const tipo = document.getElementById('login_tipo').value;
+
             const loadingOverlay = document.getElementById('loading');
-            const loadingText = document.getElementById('loading-text-msg');
-            loadingText.innerText = 'Buscando documento en el servidor...';
+            if (loadingOverlay) {
+                document.getElementById('loading-text-msg').innerText = "Iniciando Sesión...";
+                loadingOverlay.style.display = 'flex';
+            }
+
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'login', dni: dni, password: pass, tipoAdmin: tipo })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+                if (data.status === 'success') {
+                    currentAdminRol = data.rol || tipo;
+                    currentAdminInstitucion = (data.institucion || '').trim();
+                    document.getElementById('admin-name').innerText = data.nombre + (currentAdminRol === 'Delegado' ? ' (Delegado - ' + currentAdminInstitucion + ')' : ' (' + currentAdminRol + ')');
+                    configurarVistaPorRol();
+                    
+                    if (currentAdminRol === 'Delegado') {
+                        showTab('jugadores');
+                    }
+                    
+                    switchView('admin');
+                } else {
+                    Swal.fire('Acceso Denegado', data.message || 'Credenciales incorrectas.', 'error');
+                }
+            })
+            .catch(err => {
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+                Swal.fire('Error', 'No se pudo conectar al servidor: ' + err.message, 'error');
+            });
+        }
+        
+        function configurarVistaPorRol() {
+            const esDelegado = currentAdminRol === 'Delegado';
+            
+            document.getElementById('menu-graficos').style.setProperty('display', esDelegado ? 'none' : 'block', 'important');
+            document.getElementById('menu-configuracion').style.setProperty('display', esDelegado ? 'none' : 'block', 'important');
+            document.getElementById('menu-administradores').style.setProperty('display', esDelegado ? 'none' : 'block', 'important');
+            document.getElementById('menu-delegados').style.setProperty('display', esDelegado ? 'none' : 'block', 'important');
+            document.getElementById('menu-instituciones').style.setProperty('display', esDelegado ? 'none' : 'block', 'important');
+            document.getElementById('menu-jugadores').style.setProperty('display', 'block', 'important');
+        }
+
+        function cerrarSesion() {
+            document.getElementById('login_dni').value = '';
+            document.getElementById('login_pass').value = '';
+            currentAdminRol = '';
+            currentAdminInstitucion = '';
+            switchView('registro');
+        }
+
+        // ==========================
+        // ACCIONES DASHBOARD
+        // ==========================
+        let currentCarnetElement = null;
+
+        function verCarnet(dni) {
+            const jugador = allData.find(j => j.dni === dni);
+            if (!jugador) return;
+
+            const container = document.getElementById('carnet-horizontal-render');
+            
+            let fotoSrc = jugador.fotoBase64 || 'https://via.placeholder.com/150?text=FOTO';
+            if(fotoSrc.includes('drive.google.com') || fotoSrc.includes('googleusercontent.com')) {
+                const matchId = fotoSrc.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                let actualId = matchId ? (matchId[1] || matchId[2]) : null;
+                if(actualId) fotoSrc = `https://lh3.googleusercontent.com/d/${actualId}=w600`;
+            }
+
+            const qrDiv = document.createElement('div');
+            const scanUrl = window.location.href.split('?')[0] + '?scan=' + jugador.dni;
+            new QRCode(qrDiv, { text: scanUrl, width: 80, height: 80 });
+            
+            const titulo = configData.titulo !== undefined ? configData.titulo : 'JUEGOS MAGISTERIALES';
+            const c_bordes = configData.colores && configData.colores.bordes ? configData.colores.bordes : '#0044cc';
+            const c_texto = configData.colores && configData.colores.texto ? configData.colores.texto : '#0044cc';
+            const c_top = configData.colores && configData.colores.headerTop ? configData.colores.headerTop : '#0044cc';
+            const c_bottom = configData.colores && configData.colores.headerBottom ? configData.colores.headerBottom : '#ffaa00';
+            
+            const c_back_bordes = configData.colores && configData.colores.backBordes ? configData.colores.backBordes : c_bordes;
+            const c_back_top = configData.colores && configData.colores.backTop ? configData.colores.backTop : c_top;
+            const c_back_bottom = configData.colores && configData.colores.backBottom ? configData.colores.backBottom : '#111111';
+            const c_back_acento = configData.colores && configData.colores.backAcento ? configData.colores.backAcento : c_bottom;
+            const watermarkText = configData.colores && configData.colores.watermarkText ? configData.colores.watermarkText : titulo;
+            
+            // Buscar logos
+            const logoPrinc = configData.logos && configData.logos.find(l => l.institucion === 'PRINCIPAL');
+            let srcPrinc = '';
+            if(logoPrinc) {
+                let m = logoPrinc.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                let actualId = m ? (m[1] || m[2]) : null;
+                srcPrinc = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : logoPrinc.url;
+            }
+            
+            const logoSec = configData.logos ? configData.logos.filter(l => l.institucion !== 'PRINCIPAL' && l.institucion === jugador.institucion) : [];
+            let htmlLogosSec = '';
+            if (logoSec.length > 0) {
+                logoSec.forEach(l => {
+                    let m = l.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                    let actualId = m ? (m[1] || m[2]) : null;
+                    let s = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : l.url;
+                    htmlLogosSec += `<img src="${s}" crossorigin="anonymous" style="height: 25px; max-width: 35px; object-fit: contain; margin: 0 4px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">`;
+                });
+            } else {
+                // If no specific institution logo, show all other logos as decorative
+                const otherLogos = configData.logos ? configData.logos.filter(l => l.institucion !== 'PRINCIPAL') : [];
+                otherLogos.forEach(l => {
+                    let m = l.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                    let actualId = m ? (m[1] || m[2]) : null;
+                    let s = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : l.url;
+                    htmlLogosSec += `<img src="${s}" crossorigin="anonymous" style="height: 25px; max-width: 35px; object-fit: contain; margin: 0 4px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">`;
+                });
+            }
+
+            setTimeout(() => {
+                const qrDataUrl = qrDiv.querySelector('canvas') ? qrDiv.querySelector('canvas').toDataURL() : '';
+                
+                const htmlFrontal = `
+                    <div style="width: 100mm; height: 70mm; box-sizing: border-box; background: #ffffff; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: 'Arial', sans-serif; border: 2px solid ${c_bordes}; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                        
+                        <!-- FONDO -->
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #ffffff 40%, #f0f4f8 100%); z-index: 1;"></div>
+                        <div style="position: absolute; top: -50%; right: -20%; width: 100%; height: 200%; background: ${c_bordes}; transform: rotate(15deg); opacity: 0.08; z-index: 1;"></div>
+                        ${srcPrinc ? `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 65%; height: 65%; background-image: url('${srcPrinc}'); background-size: contain; background-position: center; background-repeat: no-repeat; opacity: 0.12; z-index: 1; pointer-events: none; filter: grayscale(100%);"></div>` : ''}
+                        <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 5mm; background: ${c_bottom}; z-index: 2;"></div>
+                        <div style="position: absolute; bottom: 5mm; left: 0; width: 100%; height: 1.5mm; background: ${c_top}; z-index: 2;"></div>
+                        
+                        <!-- ENCABEZADO -->
+                        <div style="width: 100%; background: ${c_top}; padding: 6px 12px; display: flex; justify-content: flex-start; align-items: center; position: relative; z-index: 3; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border-bottom: 2px solid ${c_bottom};">
+                            ${srcPrinc ? `<img src="${srcPrinc}" crossorigin="anonymous" style="width: 30px; height: 30px; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.4)); margin-right: 10px; background: white; border-radius: 50%; padding: 2px; flex-shrink: 0;">` : ''}
+                            <div style="color: white; font-weight: 900; font-size: 16px; font-style: italic; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 3px rgba(0,0,0,0.4); line-height: 1; flex-grow: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${titulo}
+                            </div>
+                        </div>
+                        
+                        <!-- CUERPO FRONTAL -->
+                        <div style="display: flex; flex-direction: row; flex-grow: 1; padding: 8px 12px; position: relative; z-index: 3;">
+                            
+                            <!-- COLUMNA IZQUIERDA: FOTO -->
+                            <div style="width: 32mm; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; margin-right: 12px;">
+                                <div style="padding: 2px; background: linear-gradient(145deg, ${c_top}, ${c_bottom}); border-radius: 8px; box-shadow: 0 5px 10px rgba(0,0,0,0.3);">
+                                    <img src="${fotoSrc}" crossorigin="anonymous" style="width: 30mm; height: 40mm; object-fit: cover; border-radius: 6px; border: 2px solid white; display: block;">
+                                </div>
+                                <div style="margin-top: -10px; z-index: 4; background: #111; color: white; font-weight: 900; font-size: 14px; letter-spacing: 2px; padding: 3px 8px; border-radius: 4px; box-shadow: 0 3px 6px rgba(0,0,0,0.4); border: 1px solid ${c_bottom}; width: 100%; text-align: center;">
+                                    ${jugador.dni}
+                                </div>
+                            </div>
+                            
+                            <!-- COLUMNA DERECHA: DATOS -->
+                            <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start;">
+                                
+                                <div style="border-bottom: 2px solid ${c_top}44; padding-bottom: 2px; margin-bottom: 4px;">
+                                    <div style="color: ${c_top}; font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">NOMBRE COMPLETO</div>
+                                    <div style="color: #111; font-size: 14px; font-weight: 900; line-height: 1.1; text-transform: uppercase; font-style: italic; letter-spacing: -0.5px;">
+                                        ${jugador.nombres}
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 5px; display: flex; gap: 10px; align-items: center;">
+                                    <span style="background: ${c_top}; color: white; font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); text-transform: uppercase;">
+                                        ${jugador.tipo || '-'}
+                                    </span>
+                                    <div>
+                                        <div style="color: ${c_texto}; font-size: 7px; font-weight: 900; text-transform: uppercase;">EDAD</div>
+                                        <div style="color: #222; font-size: 11px; font-weight: 900; margin-top: -2px;">${jugador.edad || '-'}</div>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 5px; background: white; padding: 3px 6px; border: 1px solid #e0e0e0; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid ${c_top};">
+                                    <div style="color: ${c_top}; font-size: 7px; font-weight: 800; text-transform: uppercase;">Institución</div>
+                                    <div style="color: #111; font-size: 10px; font-weight: 900; line-height: 1.1; text-transform: uppercase;">
+                                        ${jugador.institucion}
+                                    </div>
+                                </div>
+                                
+                                <div style="background: linear-gradient(90deg, ${c_top}22, transparent); padding: 3px 6px; border-left: 4px solid ${c_bottom}; border-radius: 0 4px 4px 0;">
+                                    <div style="color: ${c_texto}; font-size: 7px; font-weight: 900; text-transform: uppercase;">Disciplinas Registradas</div>
+                                    <div style="color: #000; font-size: 9.5px; font-weight: 900; line-height: 1.1; text-transform: uppercase;">
+                                        ${jugador.deportes}
+                                    </div>
+                                </div>
+                                
+                                <!-- Logos Secundarios -->
+                                <div style="margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-bottom: 8px;">
+                                    ${htmlLogosSec}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const htmlReverso = `
+                    <div style="width: 100mm; height: 70mm; box-sizing: border-box; background: linear-gradient(135deg, ${c_back_top}, ${c_back_bottom}); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Arial', sans-serif; border: 2px solid ${c_back_bordes}; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                        
+                        <!-- DECORACIÓN REVERSO -->
+                        <div style="position: absolute; top: -20%; left: -20%; width: 140%; height: 140%; background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px); z-index: 1;"></div>
+                        
+                        <!-- TEXTO REPETIDO FONDO -->
+                        <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; opacity: 0.05; z-index: 1; transform: rotate(-20deg); pointer-events: none; font-size: 20px; font-weight: 900; color: white; line-height: 1.5; overflow: hidden; text-transform: uppercase;">
+                            ${(watermarkText + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;').repeat(50)}
+                        </div>
+                        
+                        <!-- SILUETAS DEPORTIVAS FLOTANTES -->
+                        <i class="fas fa-futbol" style="position: absolute; top: 10%; left: 8%; font-size: 45px; color: rgba(255,255,255,0.08); z-index: 1; transform: rotate(-15deg);"></i>
+                        <i class="fas fa-volleyball-ball" style="position: absolute; top: 15%; right: 8%; font-size: 50px; color: rgba(255,255,255,0.08); z-index: 1; transform: rotate(25deg);"></i>
+                        <i class="fas fa-basketball-ball" style="position: absolute; bottom: 10%; left: 10%; font-size: 55px; color: rgba(255,255,255,0.08); z-index: 1; transform: rotate(10deg);"></i>
+                        <i class="fas fa-running" style="position: absolute; bottom: 15%; right: 12%; font-size: 50px; color: rgba(255,255,255,0.08); z-index: 1; transform: rotate(-10deg);"></i>
+                        <i class="fas fa-table-tennis" style="position: absolute; top: 40%; left: 4%; font-size: 35px; color: rgba(255,255,255,0.08); z-index: 1; transform: rotate(15deg);"></i>
+                        <i class="fas fa-swimmer" style="position: absolute; top: 45%; right: 4%; font-size: 45px; color: rgba(255,255,255,0.08); z-index: 1; transform: rotate(-25deg);"></i>
+                        <i class="fas fa-biking" style="position: absolute; top: 75%; left: 35%; font-size: 45px; color: rgba(255,255,255,0.08); z-index: 1; transform: rotate(5deg);"></i>
+                        
+                        <div style="z-index: 3; text-align: center; margin-bottom: 12px; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;">
+                            <div style="background: white; color: ${c_back_top}; font-size: 22px; font-weight: 900; letter-spacing: 5px; padding: 4px 20px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 2px solid ${c_back_acento};">
+                                ACREDITACIÓN
+                            </div>
+                            <div style="background: ${c_back_acento}; color: white; font-size: 11px; font-weight: 900; padding: 2px 12px; border-radius: 12px; letter-spacing: 1px; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
+                                INTRANSFERIBLE
+                            </div>
+                        </div>
+                
+                        <!-- CÓDIGO QR GIGANTE -->
+                        <div style="z-index: 3; background: white; padding: 6px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); border: 3px solid ${c_back_acento}; display: flex; justify-content: center; align-items: center; position: relative;">
+                            <img src="${qrDataUrl}" crossorigin="anonymous" style="width: 40mm; height: 40mm; display: block; border-radius: 4px;">
+                        </div>
+                        
+                        <div style="position: absolute; bottom: 10px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 9px; font-weight: bold; z-index: 3; letter-spacing: 1.5px; text-transform: uppercase;">
+                            ${titulo}
+                        </div>
+                    </div>
+                `;
+
+                container.innerHTML = `
+                    <div style="margin-bottom: 15px; display: flex; justify-content: center; gap: 10px;">
+                        <button class="btn btn-primary fw-bold" onclick="window.mostrarCara('frontal')" style="border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"><i class="fas fa-id-card me-2"></i> Ver Frontal</button>
+                        <button class="btn btn-dark fw-bold" onclick="window.mostrarCara('reverso')" style="border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"><i class="fas fa-qrcode me-2"></i> Ver Reverso</button>
+                    </div>
+                    <div style="width: 100%; overflow-x: auto; padding-bottom: 10px; display: flex; justify-content: center;">
+                        <div id="carnet-export-wrapper" style="display: flex; flex-direction: column; gap: 15px; align-items: center; background: #e9ecef; padding: 15px; border-radius: 12px; width: fit-content; min-width: 105mm;">
+                            <div id="cara-frontal">${htmlFrontal}</div>
+                            <div id="cara-reverso" style="display: none;">${htmlReverso}</div>
+                        </div>
+                    </div>
+                `;
+                currentCarnetElement = document.getElementById('carnet-export-wrapper');
+                new bootstrap.Modal(document.getElementById('carnetModal')).show();
+            }, 100);
+        }
+
+        window.mostrarCara = function(cara) {
+            if(cara === 'frontal') {
+                document.getElementById('cara-frontal').style.display = 'block';
+                document.getElementById('cara-reverso').style.display = 'none';
+            } else if (cara === 'reverso') {
+                document.getElementById('cara-frontal').style.display = 'none';
+                document.getElementById('cara-reverso').style.display = 'block';
+            } else if (cara === 'ambas') {
+                document.getElementById('cara-frontal').style.display = 'block';
+                document.getElementById('cara-reverso').style.display = 'block';
+            }
+        };
+
+        function descargarCarnet() {
+            if (!currentCarnetElement) return;
+            
+            // Determinar cuál cara está visible actualmente
+            let captureElement = document.getElementById('cara-frontal');
+            let isReverso = false;
+            
+            if (document.getElementById('cara-reverso').style.display === 'block') {
+                captureElement = document.getElementById('cara-reverso');
+                isReverso = true;
+            }
+            
+            if (!captureElement) return;
+            
+            const btn = document.querySelector('button[onclick="descargarCarnet()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                html2canvas(captureElement, {
+                    scale: 3, // Alta calidad
+                    useCORS: true,
+                    allowTaint: false,
+                    backgroundColor: null // Sin fondo gris
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+                    const a = document.createElement('a');
+                    a.href = imgData;
+                    a.download = isReverso ? 'Carnet_Reverso.jpg' : 'Carnet_Frontal.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }).catch(err => {
+                    console.error('Error al generar la imagen:', err);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    Swal.fire('Error', 'No se pudo generar la imagen del carnet.', 'error');
+                });
+            }, 300); // Pequeña pausa para asegurar renderizado
+        }
+
+        function verPdfScanner(dni) {
+            const loadingOverlay = document.getElementById('loading');
+            document.getElementById('loading-text-msg').innerText = "Cargando documento...";
             loadingOverlay.style.display = 'flex';
             
             fetch(scriptURL, {
                 method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({ action: 'get_pdf', dni: dni })
             })
             .then(res => res.json())
             .then(data => {
                 loadingOverlay.style.display = 'none';
-                if(data.status === 'success' && data.pdfBase64) {
-                    abrirModalPDF(data.pdfBase64, data.mimeType || 'application/pdf');
+                if(data.status === 'success') {
+                    let pdfUrl = data.pdfBase64;
+                    if(pdfUrl.includes('drive.google.com')) {
+                        pdfUrl = pdfUrl.replace('/view?usp=drivesdk', '/preview').replace('/view', '/preview');
+                    }
+                    document.getElementById('pdfIframe').src = pdfUrl;
+                    new bootstrap.Modal(document.getElementById('pdfModal')).show();
                 } else {
-                    Swal.fire('No encontrado', data.message || 'No se encontró el PDF para este DNI en la base de datos.', 'warning').then(()=>iniciarEscaner());
+                    Swal.fire('Error', data.message || 'No se encontró el PDF.', 'error');
                 }
             })
             .catch(err => {
                 loadingOverlay.style.display = 'none';
-                Swal.fire('Error de conexión', 'Verifica tu conexión a internet o el servidor.', 'error').then(()=>iniciarEscaner());
+                Swal.fire('Error', 'No se pudo cargar el PDF.', 'error');
             });
         }
 
-        function abrirModalPDF(base64Data, mimeType) {
-            const iframe = document.getElementById('pdfIframe');
+        function eliminarJugador(dni) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Esta acción borrará el registro y sus archivos. No se puede deshacer.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const loadingOverlay = document.getElementById('loading');
+                    document.getElementById('loading-text-msg').innerText = "Eliminando...";
+                    loadingOverlay.style.display = 'flex';
+                    
+                    fetch(scriptURL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({ action: 'delete', dni: dni })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        loadingOverlay.style.display = 'none';
+                        if(data.status === 'success') {
+                            Swal.fire('Eliminado', 'El registro ha sido eliminado.', 'success');
+                            cargarDatos();
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    }).catch(err => {
+                        loadingOverlay.style.display = 'none';
+                        Swal.fire('Error', 'No se pudo conectar al servidor: ' + err.message, 'error');
+                    });
+                }
+            });
+        }
+
+        function editarJugador(dni) {
+            const jugador = allData.find(j => j.dni === dni);
+            if (!jugador) return;
             
-            if(base64Data.startsWith('http')) {
-                // Es un enlace de Google Drive
-                let url = base64Data;
-                if(url.includes('/view')) {
-                    url = url.replace(/\/view.*/, '/preview'); // Forzar modo vista previa para iframe
-                }
-                iframe.src = url;
+            window.modoEdicionAdmin = true;
+            document.querySelector('.header-title').innerText = "Actualizar Jugador";
+            document.querySelector('.header-subtitle').innerText = "Modificar Datos";
+            document.querySelector('.btn-register').innerHTML = '<i class="fas fa-sync-alt me-2"></i> Actualizar Datos';
+            
+            // Pre-fill fields
+            document.getElementById('dni').value = jugador.dni;
+            if (currentAdminRol === 'Delegado') {
+                document.getElementById('dni').readOnly = true;
             } else {
-                // Es base64
-                if(!base64Data.startsWith('data:')) {
-                    base64Data = `data:${mimeType};base64,${base64Data}`;
-                }
-                iframe.src = base64Data;
+                document.getElementById('dni').readOnly = false;
+            }
+            document.getElementById('registroForm').dataset.oldDni = jugador.dni;
+            document.getElementById('nombres').value = jugador.nombres;
+            document.getElementById('edad').value = jugador.edad || '';
+            document.getElementById('tipo').value = jugador.tipo || '';
+            document.getElementById('genero').value = jugador.genero || '';
+            
+            // Select Institucion
+            const selectInst = document.getElementById('institucion_select');
+            let found = false;
+            Array.from(selectInst.options).forEach(opt => {
+                if(opt.value === jugador.institucion) found = true;
+            });
+            if(found) {
+                selectInst.value = jugador.institucion;
+                document.getElementById('institucion_otro_group').style.display = 'none';
+            } else {
+                selectInst.value = 'Otros';
+                document.getElementById('institucion_otro_group').style.display = 'block';
+                document.getElementById('institucion_otro').value = jugador.institucion;
             }
             
-            const pdfModal = new bootstrap.Modal(document.getElementById('pdfModal'));
-            pdfModal.show();
+            if (currentAdminRol === 'Delegado') {
+                selectInst.disabled = true;
+            } else {
+                selectInst.disabled = false;
+            }
+
+            // Deportes
+            document.querySelectorAll('input[name="deportes"]').forEach(chk => chk.checked = false);
+            if(jugador.deportes) {
+                const deps = jugador.deportes.split(',').map(d => d.trim());
+                document.querySelectorAll('input[name="deportes"]').forEach(chk => {
+                    if(deps.includes(chk.value)) chk.checked = true;
+                });
+            }
+            
+            // Files required false for update
+            document.getElementById('archivo').required = false;
+            document.getElementById('foto').required = false;
+            document.getElementById('file-name-display').innerHTML = '<i class="fas fa-file-pdf"></i> PDF (Opcional)';
+            document.getElementById('foto-name-display').innerHTML = '<i class="fas fa-image"></i> Foto (Opcional)';
+            
+            // Add a temporary warning message about optional files
+            const warningMsg = document.createElement('div');
+            warningMsg.id = 'warning-edicion-archivos';
+            warningMsg.className = 'alert alert-info mt-3 p-2 text-center text-dark';
+            warningMsg.style.fontSize = '0.9rem';
+            warningMsg.innerHTML = '<strong>Nota:</strong> Foto para Carnet y DNI/RD/TITULO(PDF) son opcionales. Si subes otros se reemplazan; si los dejas vacíos se mantienen los mismos.';
+            
+            const submitBtn = document.querySelector('.btn-register');
+            if (!document.getElementById('warning-edicion-archivos')) {
+                submitBtn.parentNode.insertBefore(warningMsg, submitBtn);
+            }
+            
+            // Move to modal and show
+            const formContainer = document.querySelector('.form-container');
+            const modalBody = document.getElementById('modal-body-registro');
+            modalBody.appendChild(formContainer);
+            
+            const modalEl = document.getElementById('modalRegistroAdmin');
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+            
+            modalEl.addEventListener('hidden.bs.modal', function onHidden() {
+                const warningMsg = document.getElementById('warning-edicion-archivos');
+                if (warningMsg) warningMsg.remove();
+                document.getElementById('view-registro').appendChild(formContainer);
+                modalEl.removeEventListener('hidden.bs.modal', onHidden);
+            });
         }
+
+        // ==========================
+        // LÓGICA DELEGADOS Y INSTITUCIONES
+        // ==========================
+        
+        let allDelegados = [];
+        let allInstituciones = [];
+
+        function cargarDelegados() {
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: 'get_delegados' }) })
+            .then(r => r.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    allDelegados = data.data;
+                    renderTablaDelegados(allDelegados);
+                }
+            });
+        }
+
+        function renderTablaDelegados(datos) {
+            const tbody = document.getElementById('tabla-delegados');
+            tbody.innerHTML = '';
+            if(datos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No hay delegados registrados</td></tr>';
+                return;
+            }
+            datos.forEach(row => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="fw-bold">${row.dni}</td>
+                        <td>${row.nombres}</td>
+                        <td>${row.password}</td>
+                        <td>${row.institucion}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning text-white" onclick="editarDelegado('${row.dni}')" title="Editar"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-danger" onclick="eliminarDelegado('${row.dni}')" title="Eliminar"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function editarDelegado(dni) {
+            const d = allDelegados.find(x => x.dni === dni);
+            if(!d) return;
+            document.getElementById('del_dni').value = d.dni;
+            document.getElementById('del_nombre').value = d.nombres;
+            document.getElementById('del_pass').value = d.password;
+            
+            // Si la opción no está en el select, añadirla dinámicamente si no existe (ya sea delegados o instituciones)
+            let selectInst = document.getElementById('del_inst');
+            let found = Array.from(selectInst.options).find(o => o.value === d.institucion);
+            if(!found) {
+                let opt = document.createElement('option');
+                opt.value = d.institucion;
+                opt.text = d.institucion;
+                selectInst.appendChild(opt);
+            }
+            selectInst.value = d.institucion;
+            
+            // Marcar que estamos editando
+            document.getElementById('registroDelegadoForm').dataset.oldDni = d.dni;
+            const modalEl = document.getElementById('modalRegistroDelegado');
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+
+        function eliminarDelegado(dni) {
+            Swal.fire({
+                title: '¿Eliminar delegado?',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+            }).then(r => {
+                if(r.isConfirmed) {
+                    fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: 'delete_delegado', dni: dni }) })
+                    .then(res => res.json()).then(data => {
+                        if(data.status === 'success') {
+                            Swal.fire('Eliminado', 'Delegado eliminado.', 'success');
+                            cargarDelegados();
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Modificamos el submit de Delegado para que use el update si oldDni está configurado
+        window.addEventListener('DOMContentLoaded', () => {
+            const formDelegado = document.getElementById('registroDelegadoForm');
+            if (formDelegado) {
+                formDelegado.onsubmit = function(e) {
+                    e.preventDefault();
+                    const dni = document.getElementById('del_dni').value;
+                    const nombre = document.getElementById('del_nombre').value;
+                    const pass = document.getElementById('del_pass').value;
+                    const inst = document.getElementById('del_inst').value;
+                    const oldDni = document.getElementById('registroDelegadoForm').dataset.oldDni;
+                    
+                    const actionType = oldDni ? 'update_delegado' : 'register_delegado';
+                    
+                    const loadingOverlay = document.getElementById('loading');
+                    document.getElementById('loading-text-msg').innerText = "Guardando...";
+                    loadingOverlay.style.display = 'flex';
+                    
+                    fetch(scriptURL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: actionType,
+                            dni: dni,
+                            oldDni: oldDni,
+                            nombres: nombre,
+                            password: pass,
+                            institucion: inst
+                        })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        loadingOverlay.style.display = 'none';
+                        if (data.status === 'success') {
+                            Swal.fire('Éxito', data.message || 'Operación exitosa', 'success');
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('modalRegistroDelegado'));
+                            if (modal) modal.hide();
+                            document.getElementById('registroDelegadoForm').dataset.oldDni = '';
+                            cargarDelegados();
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        loadingOverlay.style.display = 'none';
+                        Swal.fire('Error', 'No se pudo guardar el delegado.', 'error');
+                    });
+                };
+            }
+        });
+
+        // ===================================
+        // INSTITUCIONES
+        // ===================================
+        
+        function cargarInstituciones() {
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: 'get_instituciones' }) })
+            .then(r => r.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    allInstituciones = data.data;
+                    renderTablaInstituciones(allInstituciones);
+                    actualizarSelectsInstituciones();
+                }
+            });
+        }
+
+        function renderTablaInstituciones(datos) {
+            const tbody = document.getElementById('tabla-instituciones');
+            tbody.innerHTML = '';
+            if(datos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4">No hay instituciones registradas</td></tr>';
+                return;
+            }
+            datos.forEach(row => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="fw-bold">${row.id}</td>
+                        <td>${row.nombre}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning text-white" onclick="editarInstitucion('${row.id}')" title="Editar"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-danger" onclick="eliminarInstitucion('${row.id}')" title="Eliminar"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function abrirModalInstitucion() {
+            document.getElementById('registroInstitucionForm').reset();
+            document.getElementById('inst_id').value = '';
+            const modalEl = document.getElementById('modalRegistroInstitucion');
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+
+        function editarInstitucion(id) {
+            const i = allInstituciones.find(x => x.id === id);
+            if(!i) return;
+            document.getElementById('inst_id').value = i.id;
+            document.getElementById('inst_nombre').value = i.nombre;
+            
+            const modalEl = document.getElementById('modalRegistroInstitucion');
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+
+        function eliminarInstitucion(id) {
+            Swal.fire({
+                title: '¿Eliminar institución?',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+            }).then(r => {
+                if(r.isConfirmed) {
+                    fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: 'delete_institucion', idInst: id }) })
+                    .then(res => res.json()).then(data => {
+                        if(data.status === 'success') {
+                            Swal.fire('Eliminado', 'Institución eliminada.', 'success');
+                            cargarInstituciones();
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const formInst = document.getElementById('registroInstitucionForm');
+            if (formInst) {
+                formInst.onsubmit = function(e) {
+                    e.preventDefault();
+                    const id = document.getElementById('inst_id').value;
+                    const nombre = document.getElementById('inst_nombre').value;
+                    
+                    const actionType = id ? 'update_institucion' : 'register_institucion';
+                    
+                    const loadingOverlay = document.getElementById('loading');
+                    document.getElementById('loading-text-msg').innerText = "Guardando...";
+                    loadingOverlay.style.display = 'flex';
+                    
+                    fetch(scriptURL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: actionType,
+                            idInst: id,
+                            nombreInstitucion: nombre
+                        })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        loadingOverlay.style.display = 'none';
+                        if (data.status === 'success') {
+                            Swal.fire('Éxito', data.message || 'Operación exitosa', 'success');
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('modalRegistroInstitucion'));
+                            if (modal) modal.hide();
+                            cargarInstituciones();
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        loadingOverlay.style.display = 'none';
+                        Swal.fire('Error', 'No se pudo guardar la institución.', 'error');
+                    });
+                };
+            }
+        });
+
+        // Opcional: Actualizar las listas desplegables con las instituciones
+        function actualizarSelectsInstituciones() {
+            const selects = [document.getElementById('institucion_select'), document.getElementById('del_inst')];
+            const selectLogoInst = document.getElementById('select-logo-inst');
+            
+            selects.forEach(select => {
+                if(select) {
+                    const selectedVal = select.value;
+                    let optionsHTML = '<option value="" disabled>Selecciona tu I.E.</option>';
+                    allInstituciones.forEach(inst => {
+                        const safeVal = inst.nombre.replace(/"/g, '&quot;');
+                        optionsHTML += `<option value="${safeVal}">${inst.nombre}</option>`;
+                    });
+                    if (select.id === 'institucion_select') {
+                        optionsHTML += '<option value="Otros">Otros...</option>';
+                    }
+                    select.innerHTML = optionsHTML;
+                    if(selectedVal && Array.from(select.options).some(o => o.value === selectedVal)) {
+                        select.value = selectedVal;
+                    }
+                }
+            });
+            
+            if (selectLogoInst) {
+                const selectedVal = selectLogoInst.value;
+                let optionsHTML = '<option value="PRINCIPAL">LOGO PRINCIPAL (Arriba Izquierda)</option>';
+                allInstituciones.forEach(inst => {
+                    const safeVal = inst.nombre.replace(/"/g, '&quot;');
+                    optionsHTML += `<option value="${safeVal}">${inst.nombre}</option>`;
+                });
+                selectLogoInst.innerHTML = optionsHTML;
+                if(selectedVal && Array.from(selectLogoInst.options).some(o => o.value === selectedVal)) {
+                    selectLogoInst.value = selectedVal;
+                }
+            }
+        }
+        // ==========================================
+        // SCANNER GLOBAL
+        // ==========================================
+        let html5QrcodeScannerGlobal = null;
+        let globalScanData = []; // Cache to store data for scanner
+        
+        function abrirScannerGlobal() {
+            // Check if we have data, if not fetch it
+            if(globalScanData.length === 0 && allData.length === 0) {
+                Swal.fire({ title: 'Cargando base de datos...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                const reqData = fetch(scriptURL, { 
+                    method: 'POST', 
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'get_all' }) 
+                }).then(r => r.json());
+                
+                const reqConfig = fetch(scriptURL, { 
+                    method: 'POST', 
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'get_config' }) 
+                }).then(r => r.json());
+
+                Promise.all([reqData, reqConfig])
+                .then(results => {
+                    Swal.close();
+                    const [res, confRes] = results;
+                    
+                    if(confRes.status === 'success') {
+                        configData = confRes.config || configData;
+                        renderLogos(configData.logos || []);
+                    }
+
+                    if(res.status === 'success') {
+                        globalScanData = res.data;
+                        mostrarModalScannerGlobal();
+                    } else {
+                        Swal.fire('Error', 'No se pudieron cargar los datos', 'error');
+                    }
+                }).catch(e => {
+                    Swal.close();
+                    Swal.fire('Error', 'Problema de red: ' + e, 'error');
+                });
+            } else {
+                globalScanData = allData.length > 0 ? allData : globalScanData;
+                mostrarModalScannerGlobal();
+            }
+        }
+        
+        function mostrarModalScannerGlobal() {
+            document.getElementById('scanner-view-container').style.display = 'block';
+            document.getElementById('resultado-scan-container').style.display = 'none';
+            document.getElementById('visor-pdf-global-container').style.display = 'none';
+            document.getElementById('inputDniScan').value = '';
+            
+            switchView('scanner');
+        }
+        
+        function iniciarScannerGlobal() {
+            if(!html5QrcodeScannerGlobal) {
+                html5QrcodeScannerGlobal = new Html5Qrcode("readerGlobal");
+            }
+            document.getElementById('btn-start-scan-global').style.display = 'none';
+            document.getElementById('btn-stop-scan-global').style.display = 'inline-block';
+            
+            html5QrcodeScannerGlobal.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText, decodedResult) => {
+                    detenerScannerGlobal();
+                    procesarDniEscaneado(decodedText);
+                },
+                (errorMessage) => { }
+            ).catch(err => {
+                Swal.fire('Error', 'No se pudo acceder a la cámara. Revisa los permisos.', 'error');
+                detenerScannerGlobal();
+            });
+        }
+        
+        function detenerScannerGlobal() {
+            if(html5QrcodeScannerGlobal && html5QrcodeScannerGlobal.isScanning) {
+                html5QrcodeScannerGlobal.stop().then(() => {
+                    document.getElementById('btn-start-scan-global').style.display = 'inline-block';
+                    document.getElementById('btn-stop-scan-global').style.display = 'none';
+                }).catch(err => console.error(err));
+            } else {
+                document.getElementById('btn-start-scan-global').style.display = 'inline-block';
+                document.getElementById('btn-stop-scan-global').style.display = 'none';
+            }
+        }
+        
+        function cerrarScannerGlobal() {
+            detenerScannerGlobal();
+            switchView('registro');
+        }
+        
+        function buscarPorDniGlobal() {
+            const dni = document.getElementById('inputDniScan').value.trim();
+            if(dni.length >= 8) {
+                detenerScannerGlobal();
+                procesarDniEscaneado(dni);
+            } else {
+                Swal.fire('Error', 'Ingrese un DNI válido', 'warning');
+            }
+        }
+        
+        function procesarDniEscaneado(dni) {
+            const jugador = globalScanData.find(j => j.dni === dni);
+            if(jugador) {
+                document.getElementById('scanner-view-container').style.display = 'none';
+                document.getElementById('resultado-scan-container').style.display = 'block';
+                
+                let fotoSrc = jugador.fotoBase64 || 'https://via.placeholder.com/150?text=SIN+FOTO';
+                if(fotoSrc.includes('drive.google.com/uc')) {
+                    const matchId = fotoSrc.match(/id=([-\w]{25,})/);
+                    if(matchId && matchId[1]) {
+                        fotoSrc = `https://drive.google.com/thumbnail?id=${matchId[1]}&sz=w400-h400`;
+                    }
+                }
+                
+                document.getElementById('res-foto').src = fotoSrc;
+                document.getElementById('res-nombres').innerText = jugador.nombres;
+                document.getElementById('res-dni').innerText = "DNI: " + jugador.dni;
+                document.getElementById('res-institucion').innerText = jugador.institucion;
+                document.getElementById('res-edad').innerText = jugador.edad || '-';
+                document.getElementById('res-deportes').innerText = jugador.deportes || 'Ninguno';
+                
+                // Store DNI globally for this session
+                window.currentScanDni = jugador.dni;
+            } else {
+                Swal.fire('No encontrado', 'El DNI ' + dni + ' no está registrado.', 'error');
+                volverAScanearGlobal();
+            }
+        }
+        
+        function volverAScanearGlobal() {
+            document.getElementById('resultado-scan-container').style.display = 'none';
+            document.getElementById('visor-pdf-global-container').style.display = 'none';
+            document.getElementById('scanner-view-container').style.display = 'block';
+            document.getElementById('inputDniScan').value = '';
+        }
+        
+        function verPdfGlobal() {
+            if(!window.currentScanDni) {
+                Swal.fire('Error', 'No hay DNI seleccionado', 'error');
+                return;
+            }
+            
+            Swal.fire({ title: 'Cargando archivo PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'get_pdf', dni: window.currentScanDni })
+            })
+            .then(res => res.json())
+            .then(data => {
+                Swal.close();
+                if(data.status === 'success' && (data.pdfUrl || data.pdfBase64)) {
+                    document.getElementById('resultado-scan-container').style.display = 'none';
+                    document.getElementById('visor-pdf-global-container').style.display = 'block';
+                    
+                    let pdfUrl = data.pdfUrl || data.pdfBase64;
+                    if(pdfUrl.includes('drive.google.com/uc')) {
+                        const matchId = pdfUrl.match(/id=([-\w]{25,})/);
+                        if(matchId && matchId[1]) {
+                            pdfUrl = `https://drive.google.com/file/d/${matchId[1]}/preview`;
+                        }
+                    }
+                    
+                    document.getElementById('iframe-pdf-global').src = pdfUrl;
+                    document.getElementById('btn-descargar-pdf-global').href = data.pdfUrl || data.pdfBase64;
+                } else {
+                    Swal.fire('Sin archivo', 'Este jugador no tiene PDF adjunto o no se encontró', 'info');
+                }
+            })
+            .catch(err => {
+                Swal.close();
+                Swal.fire('Error', 'No se pudo conectar al servidor: ' + err, 'error');
+            });
+        }
+        
+        function cerrarPdfGlobal() {
+            document.getElementById('visor-pdf-global-container').style.display = 'none';
+            document.getElementById('iframe-pdf-global').src = '';
+            document.getElementById('resultado-scan-container').style.display = 'block';
+        }
+        
     </script>
     <!-- Scripts Externos para Admin -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- View Scanner Global -->
+    <div id="view-scanner" style="display: none; min-height: 100vh; background-color: #f4f6f9; padding-top: 20px;">
+        <div class="container" style="max-width: 600px;">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-qrcode"></i> SCANER QR / DNI</h5>
+                    <button type="button" class="btn-close btn-close-white" aria-label="Close" onclick="cerrarScannerGlobal()"></button>
+                </div>
+                <div class="card-body text-center p-3" style="background-color: #f4f6f9; position: relative; z-index: 1;">
+                    <!-- Marca de agua (Logo Principal) -->
+                    <img id="scanner-watermark" src="" alt="" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 300px; opacity: 0.15; pointer-events: none; z-index: -1;">
+                    
+                    <div id="scanner-view-container">
+                        <div class="input-group mb-3">
+                            <input type="text" id="inputDniScan" class="form-control" placeholder="Ingresar DNI manualmente" maxlength="8">
+                            <button class="btn btn-primary" onclick="buscarPorDniGlobal()"><i class="fas fa-search"></i> Buscar</button>
+                        </div>
+                        <div id="readerGlobal" style="width: 100%; max-width: 400px; margin: 0 auto; border: 2px solid #ccc; border-radius: 10px; overflow: hidden; background: #fff;"></div>
+                        <div class="mt-3">
+                            <button class="btn btn-outline-danger" id="btn-stop-scan-global" style="display:none;" onclick="detenerScannerGlobal()"><i class="fas fa-stop"></i> Detener Cámara</button>
+                            <button class="btn btn-outline-success" id="btn-start-scan-global" onclick="iniciarScannerGlobal()"><i class="fas fa-camera"></i> Iniciar Cámara</button>
+                        </div>
+                    </div>
+                    
+                    <div id="resultado-scan-container" style="display: none;">
+                        <div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
+                            <div class="card-body p-0 text-center">
+                                <div style="background: linear-gradient(135deg, #0044cc, #002266); padding: 20px; color: white;">
+                                    <img id="res-foto" src="" alt="Foto Jugador" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                                    <h4 class="mt-3 mb-0 fw-bold" id="res-nombres">Nombre Completo</h4>
+                                    <p class="mb-0 text-light" id="res-dni">DNI: 00000000</p>
+                                </div>
+                                <div class="p-4 text-start" style="position: relative; z-index: 1;">
+                                    <img id="res-watermark" src="" alt="" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 200px; opacity: 0.15; pointer-events: none; z-index: -1;">
+                                    <p><strong><i class="fas fa-school text-primary"></i> Institución:</strong> <span id="res-institucion"></span></p>
+                                    <p><strong><i class="fas fa-calendar-alt text-success"></i> Edad:</strong> <span id="res-edad"></span></p>
+                                    <p><strong><i class="fas fa-running text-warning"></i> Deportes:</strong> <br> <span id="res-deportes" class="badge bg-secondary mt-1"></span></p>
+                                    <hr>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-danger fw-bold" onclick="verPdfGlobal()"><i class="fas fa-file-pdf"></i> VER ARCHIVO PDF</button>
+                                        <button class="btn btn-outline-secondary" onclick="volverAScanearGlobal()"><i class="fas fa-redo"></i> Escanear Otro</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="visor-pdf-global-container" style="display: none; height: 100%;">
+                        <div class="d-flex justify-content-between mb-2">
+                            <button class="btn btn-sm btn-secondary" onclick="cerrarPdfGlobal()"><i class="fas fa-arrow-left"></i> Volver a datos</button>
+                            <a id="btn-descargar-pdf-global" href="#" target="_blank" class="btn btn-sm btn-primary"><i class="fas fa-external-link-alt"></i> Abrir</a>
+                        </div>
+                        <iframe id="iframe-pdf-global" src="" style="width: 100%; height: 60vh; border: none; border-radius: 8px;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
