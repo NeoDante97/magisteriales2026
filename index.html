@@ -406,6 +406,33 @@
                 font-size: 0.9rem;
             }
         }
+        
+        @media (max-width: 768px) {
+            #sidebar {
+                position: absolute;
+                height: 100%;
+                z-index: 1060 !important;
+                width: 0px !important; /* Start hidden on mobile */
+                overflow: hidden;
+            }
+            .admin-navbar .navbar-brand {
+                font-size: 1.1rem !important;
+            }
+            .admin-navbar .btn-danger {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.85rem;
+            }
+            .admin-tab {
+                padding: 0 !important;
+            }
+            .table-responsive {
+                font-size: 0.85rem;
+            }
+            table td, table th {
+                white-space: nowrap;
+            }
+        }
+        
         /* Modern Admin Dashboard Styles */
         #view-admin {
             background-color: #f4f7fa;
@@ -1855,12 +1882,23 @@ function togglePassword() {
 
         document.getElementById('sidebarToggle').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
-            if (sidebar.style.width === '250px') {
+            if (sidebar.style.width === '260px' || sidebar.style.width === '') {
                 sidebar.style.width = '0px';
                 sidebar.style.overflow = 'hidden';
             } else {
-                sidebar.style.width = '250px';
+                sidebar.style.width = '260px';
+                sidebar.style.overflow = 'auto';
             }
+        });
+
+        document.querySelectorAll('#sidebar .list-group-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    const sidebar = document.getElementById('sidebar');
+                    sidebar.style.width = '0px';
+                    sidebar.style.overflow = 'hidden';
+                }
+            });
         });
 
         function showTab(tabId) {
@@ -3314,47 +3352,42 @@ function togglePassword() {
         let globalScanData = []; // Cache to store data for scanner
         
         function abrirScannerGlobal() {
-            // Check if we have data, if not fetch it
-            if(globalScanData.length === 0 && allData.length === 0) {
-                Swal.fire({ title: 'Cargando base de datos...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                const reqData = fetch(scriptURL, { 
-                    method: 'POST', 
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'get_all' }) 
-                }).then(r => r.json());
-                
-                const reqConfig = fetch(scriptURL, { 
-                    method: 'POST', 
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'get_config' }) 
-                }).then(r => r.json());
-
-                Promise.all([reqData, reqConfig])
-                .then(results => {
-                    Swal.close();
-                    const [res, confRes] = results;
-                    
-                    if(confRes.status === 'success') {
-                        configData = confRes.config || configData;
-                        renderLogos(configData.logos || []);
-                    }
-
-                    if(res.status === 'success') {
-                        globalScanData = res.data;
-                        mostrarModalScannerGlobal();
-                    } else {
-                        Swal.fire('Error', 'No se pudieron cargar los datos', 'error');
-                    }
-                }).catch(e => {
-                    Swal.close();
-                    Swal.fire('Error', 'Problema de red: ' + e, 'error');
-                });
+            Swal.fire({ title: 'Cargando datos...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            let promises = [];
+            
+            if (globalScanData.length === 0 && allData.length === 0) {
+                promises.push(fetch(scriptURL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'get_all' }) }).then(r => r.json()));
             } else {
-                globalScanData = allData.length > 0 ? allData : globalScanData;
-                mostrarModalScannerGlobal();
+                promises.push(Promise.resolve({ status: 'success', data: (allData.length > 0 ? allData : globalScanData) }));
             }
+            
+            if (!configData || !configData.logos) {
+                promises.push(fetch(scriptURL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'get_config' }) }).then(r => r.json()));
+            } else {
+                promises.push(Promise.resolve({ status: 'success', config: configData }));
+            }
+
+            Promise.all(promises).then(results => {
+                Swal.close();
+                const res = results[0];
+                const confRes = results[1];
+                
+                if(confRes.status === 'success') {
+                    configData = confRes.config || configData;
+                    renderLogos(configData.logos || []);
+                }
+
+                if(res.status === 'success') {
+                    globalScanData = res.data;
+                    mostrarModalScannerGlobal();
+                } else {
+                    Swal.fire('Error', 'No se pudieron cargar los datos', 'error');
+                }
+            }).catch(e => {
+                Swal.close();
+                Swal.fire('Error', 'Problema de red: ' + e, 'error');
+            });
         }
         
         function mostrarModalScannerGlobal() {
@@ -3414,7 +3447,22 @@ function togglePassword() {
             }
         }
         
-        function procesarDniEscaneado(dni) {
+        function procesarDniEscaneado(dniRaw) {
+            let dni = dniRaw;
+            try {
+                if (dniRaw.includes('?scan=')) {
+                    dni = dniRaw.split('?scan=')[1].split('&')[0];
+                } else if (dniRaw.includes('http')) {
+                    const url = new URL(dniRaw);
+                    if (url.searchParams.has('scan')) {
+                        dni = url.searchParams.get('scan');
+                    }
+                }
+            } catch (e) {
+                console.error("Error parseando DNI de URL", e);
+            }
+            dni = dni.trim();
+
             const jugador = globalScanData.find(j => j.dni === dni);
             if(jugador) {
                 document.getElementById('scanner-view-container').style.display = 'none';
@@ -3456,7 +3504,9 @@ function togglePassword() {
                 return;
             }
             
-            Swal.fire({ title: 'Cargando archivo PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.innerHTML = '<div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; color:white; font-size:24px;">Cargando PDF...</div>';
+            document.body.appendChild(loadingOverlay);
             
             fetch(scriptURL, {
                 method: 'POST',
@@ -3466,27 +3516,43 @@ function togglePassword() {
             })
             .then(res => res.json())
             .then(data => {
-                Swal.close();
-                if(data.status === 'success' && (data.pdfUrl || data.pdfBase64)) {
-                    document.getElementById('resultado-scan-container').style.display = 'none';
-                    document.getElementById('visor-pdf-global-container').style.display = 'block';
-                    
-                    let pdfUrl = data.pdfUrl || data.pdfBase64;
-                    if(pdfUrl.includes('drive.google.com/uc')) {
-                        const matchId = pdfUrl.match(/id=([-\w]{25,})/);
+                loadingOverlay.remove();
+                let pdfBase64 = data.pdfUrl || data.pdfBase64;
+                if(data.status === 'success' && pdfBase64) {
+                    let url = pdfBase64;
+                    if(url.includes('drive.google.com/uc') || url.includes('drive.google.com/open')) {
+                        const matchId = url.match(/id=([-\w]{25,})/);
                         if(matchId && matchId[1]) {
-                            pdfUrl = `https://drive.google.com/file/d/${matchId[1]}/preview`;
+                            url = `https://drive.google.com/file/d/${matchId[1]}/preview`;
                         }
+                    } else if(url.includes('drive.google.com/file/d/')) {
+                         url = url.replace('/view?usp=drivesdk', '/preview').replace('/view', '/preview');
                     }
                     
-                    document.getElementById('iframe-pdf-global').src = pdfUrl;
-                    document.getElementById('btn-descargar-pdf-global').href = data.pdfUrl || data.pdfBase64;
+                    const div = document.createElement('div');
+                    div.style.position = 'fixed';
+                    div.style.top = '0'; div.style.left = '0';
+                    div.style.width = '100%'; div.style.height = '100%';
+                    div.style.background = 'rgba(0,0,0,0.95)';
+                    div.style.zIndex = '10000';
+                    div.id = 'visor-pdf-global-overlay';
+                    div.innerHTML = `
+                        <div style="background: #222; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: white; font-weight: bold;"><i class="fas fa-file-pdf"></i> Documento PDF</span>
+                            <div>
+                                <a href="${pdfBase64}" target="_blank" class="btn btn-primary btn-sm me-2"><i class="fas fa-external-link-alt"></i> Abrir</a>
+                                <button class="btn btn-danger btn-sm" onclick="document.getElementById('visor-pdf-global-overlay').remove()"><i class="fas fa-times"></i> Cerrar</button>
+                            </div>
+                        </div>
+                        <iframe src="${url}" style="width: 100%; height: calc(100% - 60px); border: none;"></iframe>
+                    `;
+                    document.body.appendChild(div);
                 } else {
                     Swal.fire('Sin archivo', 'Este jugador no tiene PDF adjunto o no se encontró', 'info');
                 }
             })
             .catch(err => {
-                Swal.close();
+                loadingOverlay.remove();
                 Swal.fire('Error', 'No se pudo conectar al servidor: ' + err, 'error');
             });
         }
