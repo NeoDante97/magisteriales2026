@@ -902,6 +902,9 @@ function togglePassword() {
                                 </div>
                             </div>
                             <div class="col-md-6 text-md-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end">
+                                <button class="btn btn-warning fw-bold text-dark" onclick="abrirModalGenerarPDF()">
+                                    <i class="fas fa-file-pdf"></i> Generar PDF
+                                </button>
                                 <button class="btn btn-success fw-bold" onclick="abrirModalRegistro()">
                                     <i class="fas fa-user-plus"></i> Nuevo Jugador
                                 </button>
@@ -1136,6 +1139,30 @@ function togglePassword() {
                 </div>
             </div>
 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Generar PDF Carnets -->
+<div class="modal fade" id="modalGenerarPdfCarnets" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="modal-header bg-warning text-dark border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-file-pdf me-2"></i>Generar Carnets en PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <p class="text-muted small mb-3">Se generará un PDF tamaño A4 con 6 carnets por página (frontal y reverso listos para doblar).</p>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Seleccionar Institución:</label>
+                    <select class="form-select" id="filtro-pdf-institucion">
+                        <option value="TODOS">Todos los Jugadores (Demora más)</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary w-100 fw-bold py-2" id="btn-generar-pdf-carnets" onclick="procesarGeneracionPdfCarnets()">
+                    <i class="fas fa-print me-2"></i> Generar y Descargar PDF
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -2476,7 +2503,214 @@ function togglePassword() {
             reader.readAsDataURL(file);
         }
 
-        function renderLogos(logos) {
+                function abrirModalGenerarPDF() {
+            if(!allData || allData.length === 0) {
+                Swal.fire('Atención', 'No hay jugadores registrados para generar carnets.', 'info');
+                return;
+            }
+            const select = document.getElementById('filtro-pdf-institucion');
+            select.innerHTML = '<option value="TODOS">Todos los Jugadores (Demora más)</option>';
+            const instituciones = [...new Set(allData.map(j => j.institucion))].sort();
+            instituciones.forEach(inst => {
+                const opt = document.createElement('option');
+                opt.value = inst;
+                opt.innerText = inst;
+                select.appendChild(opt);
+            });
+            new bootstrap.Modal(document.getElementById('modalGenerarPdfCarnets')).show();
+        }
+
+        async function procesarGeneracionPdfCarnets() {
+            const btn = document.getElementById('btn-generar-pdf-carnets');
+            const originalText = btn.innerHTML;
+            const institucion = document.getElementById('filtro-pdf-institucion').value;
+            
+            let jugadores = allData;
+            if (institucion !== 'TODOS') {
+                jugadores = allData.filter(j => j.institucion === institucion);
+            }
+            
+            if(jugadores.length === 0) {
+                Swal.fire('Atención', 'No hay jugadores en esta institución.', 'info');
+                return;
+            }
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando PDF...';
+            btn.disabled = true;
+            
+            try {
+                const pdfContainer = document.createElement('div');
+                pdfContainer.style.background = '#fff';
+                pdfContainer.style.width = '210mm';
+                pdfContainer.style.padding = '5mm';
+                pdfContainer.style.boxSizing = 'border-box';
+                
+                const titulo = configData.titulo !== undefined ? configData.titulo : 'JUEGOS MAGISTERIALES';
+                const c_bordes = configData.colores && configData.colores.bordes ? configData.colores.bordes : '#0044cc';
+                const c_texto = configData.colores && configData.colores.texto ? configData.colores.texto : '#0044cc';
+                const c_top = configData.colores && configData.colores.headerTop ? configData.colores.headerTop : '#0044cc';
+                const c_bottom = configData.colores && configData.colores.headerBottom ? configData.colores.headerBottom : '#ffaa00';
+                
+                const c_back_bordes = configData.colores && configData.colores.backBordes ? configData.colores.backBordes : c_bordes;
+                const c_back_top = configData.colores && configData.colores.backTop ? configData.colores.backTop : c_top;
+                const c_back_bottom = configData.colores && configData.colores.backBottom ? configData.colores.backBottom : '#111111';
+                const c_back_acento = configData.colores && configData.colores.backAcento ? configData.colores.backAcento : c_bottom;
+                const watermarkText = configData.colores && configData.colores.watermarkText ? configData.colores.watermarkText : titulo;
+                
+                const logoPrinc = configData.logos && configData.logos.find(l => l.institucion === 'PRINCIPAL');
+                let srcPrinc = '';
+                if(logoPrinc) {
+                    let m = logoPrinc.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                    let actualId = m ? (m[1] || m[2]) : null;
+                    srcPrinc = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : logoPrinc.url;
+                }
+                
+                const otherLogosHtml = (configData.logos ? configData.logos.filter(l => l.institucion !== 'PRINCIPAL') : []).map(l => {
+                    let m = l.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                    let actualId = m ? (m[1] || m[2]) : null;
+                    let s = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : l.url;
+                    return `<img src="${s}" crossorigin="anonymous" style="height: 25px; max-width: 35px; object-fit: contain; margin: 0 4px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">`;
+                }).join('');
+
+                for (let i = 0; i < jugadores.length; i++) {
+                    const jugador = jugadores[i];
+                    
+                    let fotoSrc = jugador.fotoBase64 || 'https://via.placeholder.com/150?text=FOTO';
+                    if(fotoSrc.includes('drive.google.com') || fotoSrc.includes('googleusercontent.com')) {
+                        const matchId = fotoSrc.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                        let actualId = matchId ? (matchId[1] || matchId[2]) : null;
+                        if(actualId) fotoSrc = `https://lh3.googleusercontent.com/d/${actualId}=w600`;
+                    }
+                    
+                    const qrDiv = document.createElement('div');
+                    const scanUrl = window.location.href.split('?')[0] + '?scan=' + jugador.dni;
+                    new QRCode(qrDiv, { text: scanUrl, width: 80, height: 80 });
+                    
+                    await new Promise(r => setTimeout(r, 20));
+                    const qrDataUrl = qrDiv.querySelector('canvas') ? qrDiv.querySelector('canvas').toDataURL() : '';
+                    
+                    const logoSec = configData.logos ? configData.logos.filter(l => l.institucion !== 'PRINCIPAL' && l.institucion === jugador.institucion) : [];
+                    let htmlLogosSec = '';
+                    if (logoSec.length > 0) {
+                        logoSec.forEach(l => {
+                            let m = l.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                            let actualId = m ? (m[1] || m[2]) : null;
+                            let s = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : l.url;
+                            htmlLogosSec += `<img src="${s}" crossorigin="anonymous" style="height: 25px; max-width: 35px; object-fit: contain; margin: 0 4px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">`;
+                        });
+                    } else {
+                        htmlLogosSec = otherLogosHtml;
+                    }
+                    
+                    const htmlFrontal = `
+                        <div style="width: 100mm; height: 70mm; box-sizing: border-box; background: #ffffff; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: 'Arial', sans-serif; border: 2px solid ${c_bordes}; border-radius: 8px 0 0 8px; border-right: none;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #ffffff 40%, #f0f4f8 100%); z-index: 1;"></div>
+                            <div style="position: absolute; top: -50%; right: -20%; width: 100%; height: 200%; background: ${c_bordes}; transform: rotate(15deg); opacity: 0.08; z-index: 1;"></div>
+                            ${srcPrinc ? `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 65%; height: 65%; background-image: url('${srcPrinc}'); background-size: contain; background-position: center; background-repeat: no-repeat; opacity: 0.12; z-index: 1; filter: grayscale(100%);"></div>` : ''}
+                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 5mm; background: ${c_bottom}; z-index: 2;"></div>
+                            <div style="position: absolute; bottom: 5mm; left: 0; width: 100%; height: 1.5mm; background: ${c_top}; z-index: 2;"></div>
+                            
+                            <div style="width: 100%; background: ${c_top}; padding: 6px 12px; display: flex; justify-content: flex-start; align-items: center; position: relative; z-index: 3; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border-bottom: 2px solid ${c_bottom};">
+                                ${srcPrinc ? `<img src="${srcPrinc}" crossorigin="anonymous" style="width: 30px; height: 30px; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.4)); margin-right: 10px; background: white; border-radius: 50%; padding: 2px; flex-shrink: 0;">` : ''}
+                                <div style="color: white; font-weight: 900; font-size: 16px; font-style: italic; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 3px rgba(0,0,0,0.4); line-height: 1; flex-grow: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    ${titulo}
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; flex-direction: row; flex-grow: 1; padding: 8px 12px; position: relative; z-index: 3;">
+                                <div style="width: 32mm; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; margin-right: 12px;">
+                                    <div style="padding: 2px; background: linear-gradient(145deg, ${c_top}, ${c_bottom}); border-radius: 8px; box-shadow: 0 5px 10px rgba(0,0,0,0.3);">
+                                        <img src="${fotoSrc}" crossorigin="anonymous" style="width: 30mm; height: 40mm; object-fit: cover; border-radius: 6px; border: 2px solid white; display: block;">
+                                    </div>
+                                    <div style="margin-top: -10px; z-index: 4; background: #111; color: white; font-weight: 900; font-size: 14px; letter-spacing: 2px; padding: 3px 8px; border-radius: 4px; box-shadow: 0 3px 6px rgba(0,0,0,0.4); border: 1px solid ${c_bottom}; width: 100%; text-align: center;">${jugador.dni}</div>
+                                </div>
+                                <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start;">
+                                    <div style="border-bottom: 2px solid ${c_top}44; padding-bottom: 2px; margin-bottom: 4px;">
+                                        <div style="color: ${c_top}; font-size: 8px; font-weight: 900; text-transform: uppercase;">NOMBRE COMPLETO</div>
+                                        <div style="color: #111; font-size: 14px; font-weight: 900; line-height: 1.1; text-transform: uppercase; font-style: italic;">${jugador.nombres}</div>
+                                    </div>
+                                    <div style="margin-bottom: 5px; display: flex; gap: 10px; align-items: center;">
+                                        <span style="background: ${c_top}; color: white; font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 4px;">${jugador.tipo || '-'}</span>
+                                        <div><div style="color: ${c_texto}; font-size: 7px; font-weight: 900;">EDAD</div><div style="color: #222; font-size: 11px; font-weight: 900; margin-top: -2px;">${jugador.edad || '-'}</div></div>
+                                    </div>
+                                    <div style="margin-bottom: 5px; background: white; padding: 3px 6px; border: 1px solid #e0e0e0; border-radius: 4px; border-left: 4px solid ${c_top};">
+                                        <div style="color: ${c_top}; font-size: 7px; font-weight: 800; text-transform: uppercase;">Institución</div>
+                                        <div style="color: #111; font-size: 10px; font-weight: 900; line-height: 1.1; text-transform: uppercase;">${jugador.institucion}</div>
+                                    </div>
+                                    <div style="background: linear-gradient(90deg, ${c_top}22, transparent); padding: 3px 6px; border-left: 4px solid ${c_bottom}; border-radius: 0 4px 4px 0;">
+                                        <div style="color: ${c_texto}; font-size: 7px; font-weight: 900; text-transform: uppercase;">Disciplinas</div>
+                                        <div style="color: #000; font-size: 9.5px; font-weight: 900; line-height: 1.1; text-transform: uppercase;">${jugador.deportes}</div>
+                                    </div>
+                                    <div style="margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-bottom: 8px;">${htmlLogosSec}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const htmlReverso = `
+                        <div style="width: 100mm; height: 70mm; box-sizing: border-box; background: linear-gradient(135deg, ${c_back_top}, ${c_back_bottom}); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Arial', sans-serif; border: 2px solid ${c_back_bordes}; border-radius: 0 8px 8px 0; border-left: 1px dashed #ccc;">
+                            <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; opacity: 0.05; z-index: 1; transform: rotate(-20deg); font-size: 20px; font-weight: 900; color: white; line-height: 1.5; text-transform: uppercase;">
+                                ${(watermarkText + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;').repeat(50)}
+                            </div>
+                            <div style="z-index: 3; text-align: center; margin-bottom: 12px; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;">
+                                <div style="background: white; color: ${c_back_top}; font-size: 22px; font-weight: 900; letter-spacing: 5px; padding: 4px 20px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 2px solid ${c_back_acento};">ACREDITACIÓN</div>
+                                <div style="background: ${c_back_acento}; color: white; font-size: 11px; font-weight: 900; padding: 2px 12px; border-radius: 12px; letter-spacing: 1px;">INTRANSFERIBLE</div>
+                            </div>
+                            <div style="z-index: 3; background: white; padding: 6px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); border: 3px solid ${c_back_acento}; display: flex; justify-content: center; align-items: center;">
+                                <img src="${qrDataUrl}" crossorigin="anonymous" style="width: 40mm; height: 40mm; display: block; border-radius: 4px;">
+                            </div>
+                            <div style="position: absolute; bottom: 10px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 9px; font-weight: bold; z-index: 3; letter-spacing: 1.5px; text-transform: uppercase;">${titulo}</div>
+                        </div>
+                    `;
+                    
+                    const cardWrapper = document.createElement('div');
+                    cardWrapper.style.width = '130mm';
+                    cardWrapper.style.height = '46mm'; 
+                    cardWrapper.style.margin = '0 auto';
+                    
+                    cardWrapper.innerHTML = `
+                        <div style="width: 200mm; height: 70mm; transform: scale(0.65); transform-origin: top center; display: flex; flex-direction: row; margin: 0 auto;">
+                            ${htmlFrontal}
+                            ${htmlReverso}
+                        </div>
+                    `;
+                    
+                    pdfContainer.appendChild(cardWrapper);
+                    
+                    if ((i + 1) % 6 === 0 && i !== jugadores.length - 1) {
+                        const pb = document.createElement('div');
+                        pb.style.pageBreakAfter = 'always';
+                        pb.style.height = '0';
+                        pb.style.visibility = 'hidden';
+                        pdfContainer.appendChild(pb);
+                    }
+                }
+                
+                const opt = {
+                    margin: 5,
+                    filename:     `Carnets_${institucion === 'TODOS' ? 'General' : institucion}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                await html2pdf().set(opt).from(pdfContainer).save();
+                
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                bootstrap.Modal.getInstance(document.getElementById('modalGenerarPdfCarnets')).hide();
+                Swal.fire('¡Éxito!', 'El PDF se ha generado correctamente.', 'success');
+                
+            } catch (err) {
+                console.error(err);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                Swal.fire('Error', 'Hubo un problema al generar el PDF.', 'error');
+            }
+        }
+
+
+function renderLogos(logos) {
             const galeria = document.getElementById('galeria-logos');
             if(!galeria) return;
             galeria.innerHTML = '';
@@ -3654,3 +3888,6 @@ function togglePassword() {
     </div>
 </body>
 </html>
+
+
+
