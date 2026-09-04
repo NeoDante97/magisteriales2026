@@ -1298,7 +1298,89 @@ function togglePassword() {
         // ==========================================
         // URL GLOBAL DE APPS SCRIPT
         // ==========================================
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxDOQi0vVTkIb0Lr2hffffONcHeDnEVHOHZSi8FHW-EFMCC5wkbGTQNjj2URjZMl8fQ/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyUe2Mc_Zihiw78LJFKWnySSR_iyqo6igNvhkhwEVjURWqXjJ3kDswMxtuRR2RxKkoA/exec';
+
+// ==========================================
+// PROTECCIÓN Y OPTIMIZACIÓN DE CONEXIÓN
+// ==========================================
+const APP_VERSION = 'v2';
+const ORIGINAL_FETCH = window.fetch;
+
+window.fetch = async function(url, options) {
+    if (url === scriptURL && options && options.body) {
+        try {
+            let bodyData = JSON.parse(options.body);
+            
+            // Protección básica de entradas (evitar scripts)
+            for (let key in bodyData) {
+                if (typeof bodyData[key] === 'string') {
+                    bodyData[key] = bodyData[key].replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+                }
+            }
+            
+            // Añadir versión obligatoria
+            bodyData.version = APP_VERSION;
+            options.body = JSON.stringify(bodyData);
+
+            // Timeout de conexión de 30 segundos
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            options.signal = controller.signal;
+
+            const response = await ORIGINAL_FETCH(url, options);
+            clearTimeout(timeoutId);
+            
+            // Revisar si la versión es la incorrecta
+            const clonedRes = response.clone();
+            try {
+                const data = await clonedRes.json();
+                if (data.status === 'error' && data.message === 'ACTUALIZAR A LA ULTIMA VERSIÓN') {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'ACTUALIZAR A LA ULTIMA VERSIÓN',
+                            text: 'Por favor, actualiza la página o solicita la versión más reciente.',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        alert('ACTUALIZAR A LA ULTIMA VERSIÓN');
+                        window.location.reload();
+                    }
+                    return Promise.reject(new Error('ACTUALIZAR A LA ULTIMA VERSIÓN'));
+                }
+            } catch (e) {
+                if (e.message === 'ACTUALIZAR A LA ULTIMA VERSIÓN') throw e;
+            }
+
+            return response;
+        } catch (error) {
+            if (error.name === 'AbortError' || error.message.includes('fetch') || error.message.includes('Network')) {
+                const errMsg = 'Apps Script falló. Ocurrió un problema de conexión o timeout.';
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de Conexión',
+                        text: errMsg,
+                        confirmButtonText: 'Reintentar'
+                    });
+                } else {
+                    alert(errMsg);
+                }
+                
+                const loadingOverlay = document.getElementById('loading');
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+                
+                return Promise.reject(new Error(errMsg));
+            }
+            return Promise.reject(error);
+        }
+    }
+    
+    return ORIGINAL_FETCH(url, options);
+};
+
 
         let dnisRegistradosGlobal = [];
 
@@ -3962,3 +4044,7 @@ function renderLogos(logos) {
     </div>
 </body>
 </html>
+
+
+
+
