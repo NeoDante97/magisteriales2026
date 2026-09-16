@@ -1275,13 +1275,12 @@ function togglePassword() {
                                     <tr>
                                         <th>DNI</th>
                                         <th>NOMBRE COMPLETO</th>
-                                        <th>CONTRASEÑA</th>
                                         <th>INSTITUCIÓN EDUCATIVA</th>
                                         <th>ACCIONES</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-delegados" class="text-center">
-                                    <tr><td colspan="5" class="text-center py-4">Haz clic en Actualizar para cargar los datos</td></tr>
+                                    <tr><td colspan="4" class="text-center py-4">Haz clic en Actualizar para cargar los datos</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -2265,12 +2264,7 @@ window.fetch = async function(url, options) {
             if (!container) return;
             container.innerHTML = '';
             let uniqueInsts = new Set([
-                'I.E. “PARQUE INDUSTRIAL”', 'I.E. “CESAR VALLEJO”', 'I.E. “SAN ANTONIO DE ABAD” – “QUISTO CENTRAL”',
-                'I.E. “JOSÉ MARÍA ARGUEDAS”', 'I.E. N° 38990-A “MARAVILLA”', 'I.E. ISAAC NEWTON',
-                'I.E. N° 501345 – “CATARATA”', 'I.E. “BARTOLOMÉ HERRERA”', 'I.E. “SIMÓN BOLÍVAR”',
-                'I.E. N° 38968 – “QUISTO CENTRAL”', 'I.E. N° 38709 – “TERESA”', 'I.E. DE “NATIVIDAD”',
-                'I.E. N° 38990-B “SANKIROSHI”', 'I.E. N° 38824 – “TARANCATO”', 'I.E. N° 38776 – “OTARI SAN MARTÍN”',
-                'I.E. DE SAN CRISTOBAL', 'I.E. “LA VERDAD”', 'I.E.P. “MARÍA MONTESSORI”'
+                ''
             ]);
             if (typeof allInstituciones !== 'undefined') {
                 allInstituciones.forEach(i => uniqueInsts.add(i.nombre));
@@ -2800,11 +2794,10 @@ window.fetch = async function(url, options) {
             
             datos.forEach(row => {
                 let fotoSrc = row.fotoBase64 || 'https://via.placeholder.com/50?text=FOTO';
-                if(fotoSrc.includes('drive.google.com/uc')) {
-                    const matchId = fotoSrc.match(/id=([-\w]{25,})/);
-                    if(matchId && matchId[1]) {
-                        fotoSrc = `https://drive.google.com/thumbnail?id=${matchId[1]}&sz=w200-h200`;
-                    }
+                if(fotoSrc.includes('drive.google.com') || fotoSrc.includes('googleusercontent.com')) {
+                    const matchId = fotoSrc.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                    let actualId = matchId ? (matchId[1] || matchId[2]) : null;
+                    if(actualId) fotoSrc = `https://lh3.googleusercontent.com/d/${actualId}=w200`;
                 }
 
                 htmlRows += `
@@ -4287,7 +4280,7 @@ async function abrirModalCambiarPassword() {
             const tbody = document.getElementById('tabla-delegados');
             tbody.innerHTML = '';
             if(datos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No hay delegados registrados</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">No hay delegados registrados</td></tr>';
                 return;
             }
             
@@ -4299,7 +4292,6 @@ async function abrirModalCambiarPassword() {
                     <tr>
                         <td class="fw-bold">${row.dni}</td>
                         <td>${row.nombres}</td>
-                        <td>${row.password}</td>
                         <td>${row.institucion}</td>
                         <td>
                             ${showEditDelete ? `<button class="btn btn-sm btn-info text-white" onclick="abrirModalPermisos('${row.dni}')" title="Permisos"><i class="fas fa-key"></i></button>
@@ -4764,7 +4756,7 @@ async function abrirModalCambiarPassword() {
             }
         }
         
-        function procesarDniEscaneado(dniRaw) {
+        async function procesarDniEscaneado(dniRaw) {
             let dni = dniRaw;
             try {
                 if (dniRaw.includes('?scan=')) {
@@ -4782,15 +4774,28 @@ async function abrirModalCambiarPassword() {
 
             const jugador = globalScanData.find(j => j.dni === dni);
             if(jugador) {
+                if (jugador.tieneFoto && !jugador.fotoBase64) {
+                    Swal.fire({ title: 'Descargando Foto...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    try {
+                        let res = await fetch(scriptURL, {
+                            method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' },
+                            body: JSON.stringify({ action: 'get_foto', dni: dni })
+                        }).then(r => r.json());
+                        if (res.status === 'success' && res.fotoBase64) {
+                            jugador.fotoBase64 = res.fotoBase64;
+                        }
+                    } catch(e) { console.error('Error fetching photo', e); }
+                    Swal.close();
+                }
+
                 document.getElementById('scanner-view-container').style.display = 'none';
                 document.getElementById('resultado-scan-container').style.display = 'block';
                 
                 let fotoSrc = jugador.fotoBase64 || 'https://via.placeholder.com/150?text=SIN+FOTO';
-                if(fotoSrc.includes('drive.google.com/uc')) {
-                    const matchId = fotoSrc.match(/id=([-\w]{25,})/);
-                    if(matchId && matchId[1]) {
-                        fotoSrc = `https://drive.google.com/thumbnail?id=${matchId[1]}&sz=w400-h400`;
-                    }
+                if(fotoSrc.includes('drive.google.com') || fotoSrc.includes('googleusercontent.com')) {
+                    const matchId = fotoSrc.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                    let actualId = matchId ? (matchId[1] || matchId[2]) : null;
+                    if(actualId) fotoSrc = `https://lh3.googleusercontent.com/d/${actualId}=w600`;
                 }
                 
                 document.getElementById('res-foto').src = fotoSrc;
