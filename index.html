@@ -2106,7 +2106,7 @@ window.fetch = async function(url, options) {
                 const institucionFinal = institucionSelect === 'Otros' ? institucionOtro : institucionSelect;
 
                 const payload = {
-                    dni: document.getElementById('dni').value,
+                    dni: "'" + document.getElementById('dni').value,
                     oldDni: document.getElementById('registroForm').dataset.oldDni || '',
                     nombres: document.getElementById('nombres').value,
                     edad: document.getElementById('edad').value,
@@ -4397,10 +4397,10 @@ async function abrirModalCambiarPassword() {
                         headers: { 'Content-Type': 'text/plain' },
                         body: JSON.stringify({
                             action: actionType,
-                            dni: dni,
+                            dni: "'" + dni,
                             oldDni: oldDni,
                             nombres: nombre,
-                            password: pass,
+                            password: "'" + pass,
                             institucion: inst
                         })
                     })
@@ -4457,9 +4457,9 @@ async function abrirModalCambiarPassword() {
                         body: JSON.stringify({
                             action: 'update_delegado',
                             oldDni: d.dni,
-                            dni: d.dni,
+                            dni: "'" + d.dni,
                             nombres: d.nombres,
-                            password: d.password,
+                            password: "'" + d.password,
                             institucion: d.institucion,
                             llave: JSON.stringify(permisos)
                         })
