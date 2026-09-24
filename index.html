@@ -1010,10 +1010,22 @@ function togglePassword() {
                             </div>
                         </div>
 
+                        <div id="acciones-multiples-container" class="mb-3 d-flex gap-2" style="display: none !important;">
+                            <button class="btn btn-danger fw-bold shadow-sm" onclick="eliminarSeleccionados()">
+                                <i class="fas fa-trash"></i> Eliminar seleccionados
+                            </button>
+                            <button class="btn btn-warning fw-bold shadow-sm text-dark" onclick="generarCarnetsSeleccionados()">
+                                <i class="fas fa-file-pdf"></i> Generar carnet seleccionados
+                            </button>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="table table-hover align-middle rounded overflow-hidden">
                                 <thead class="table-primary text-center">
                                     <tr>
+                                        <th style="width: 40px;" id="col-checkbox-header">
+                                            <input type="checkbox" id="selectAllCheckbox" class="form-check-input" onchange="toggleSelectAll()">
+                                        </th>
                                         <th>DNI</th>
                                         <th>NOMBRE COMPLETO</th>
                                         <th>Edad</th>
@@ -2782,8 +2794,9 @@ window.fetch = async function(url, options) {
         function renderTabla(datos) {
             const tbody = document.getElementById('tabla-body');
             tbody.innerHTML = '';
+            const colspanCols = currentAdminRol !== 'Delegado' ? 9 : 8;
             if(datos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No hay registros</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="${colspanCols}" class="text-center py-4">No hay registros</td></tr>`;
                 return;
             }
 
@@ -2791,6 +2804,11 @@ window.fetch = async function(url, options) {
             
             const permsJugadores = window.permisosDelegadoActual ? window.permisosDelegadoActual.jugadores : 'TOTAL';
             const showEditDelete = currentAdminRol !== 'Delegado' || permsJugadores === 'TOTAL' || permsJugadores === 'RW';
+            
+            const checkboxHeader = document.getElementById('col-checkbox-header');
+            if (checkboxHeader) {
+                checkboxHeader.style.display = currentAdminRol !== 'Delegado' ? 'table-cell' : 'none';
+            }
             
             datos.forEach(row => {
                 let fotoSrc = row.fotoBase64 || 'https://via.placeholder.com/50?text=FOTO';
@@ -2802,6 +2820,11 @@ window.fetch = async function(url, options) {
 
                 htmlRows += `
                     <tr>
+                        ${currentAdminRol !== 'Delegado' ? `
+                        <td>
+                            <input type="checkbox" class="form-check-input row-checkbox" value="${row.dni}" onchange="toggleRowSelection()">
+                        </td>
+                        ` : ''}
                         <td class="fw-bold">${row.dni}</td>
                         <td>${row.nombres}</td>
                         <td>${row.edad || '-'}</td>
@@ -2821,6 +2844,100 @@ window.fetch = async function(url, options) {
                 `;
             });
             tbody.innerHTML = htmlRows;
+            
+            // Reset select all checkbox
+            const selectAllCb = document.getElementById('selectAllCheckbox');
+            if(selectAllCb) selectAllCb.checked = false;
+            actualizarBotonesMultiples();
+        }
+
+        function toggleSelectAll() {
+            const selectAllCb = document.getElementById('selectAllCheckbox');
+            const rowCbs = document.querySelectorAll('.row-checkbox');
+            rowCbs.forEach(cb => cb.checked = selectAllCb.checked);
+            actualizarBotonesMultiples();
+        }
+
+        function toggleRowSelection() {
+            const selectAllCb = document.getElementById('selectAllCheckbox');
+            const rowCbs = document.querySelectorAll('.row-checkbox');
+            const allChecked = Array.from(rowCbs).length > 0 && Array.from(rowCbs).every(cb => cb.checked);
+            if(selectAllCb) selectAllCb.checked = allChecked;
+            actualizarBotonesMultiples();
+        }
+
+        function actualizarBotonesMultiples() {
+            const rowCbs = document.querySelectorAll('.row-checkbox');
+            const anyChecked = Array.from(rowCbs).some(cb => cb.checked);
+            const container = document.getElementById('acciones-multiples-container');
+            if(container) {
+                if (anyChecked) {
+                    container.style.setProperty('display', 'flex', 'important');
+                } else {
+                    container.style.setProperty('display', 'none', 'important');
+                }
+            }
+        }
+
+        function obtenerDnisSeleccionados() {
+            const rowCbs = document.querySelectorAll('.row-checkbox:checked');
+            return Array.from(rowCbs).map(cb => cb.value);
+        }
+
+        async function eliminarSeleccionados() {
+            const dnis = obtenerDnisSeleccionados();
+            if (dnis.length === 0) return;
+            
+            const confirmacion = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Se eliminarán ${dnis.length} jugador(es) seleccionado(s).`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!confirmacion.isConfirmed) return;
+
+            Swal.fire({ title: 'Eliminando...', html: 'Por favor espera...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            let eliminados = 0;
+            let errores = 0;
+            for (const dni of dnis) {
+                try {
+                    const response = await fetch(scriptURL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({ action: 'delete', dni: dni })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        eliminados++;
+                    } else {
+                        errores++;
+                    }
+                } catch (error) {
+                    errores++;
+                }
+            }
+
+            if (errores === 0) {
+                Swal.fire('Eliminados', `Se eliminaron ${eliminados} jugador(es) correctamente.`, 'success');
+            } else {
+                Swal.fire('Completado con errores', `Se eliminaron ${eliminados} jugador(es), pero fallaron ${errores}.`, 'warning');
+            }
+            
+            cargarDatos();
+        }
+
+        function generarCarnetsSeleccionados() {
+            const dnis = obtenerDnisSeleccionados();
+            if (dnis.length === 0) return;
+            
+            procesarGeneracionPdfCarnets(dnis);
         }
 
         // ==========================
@@ -3180,13 +3297,15 @@ window.fetch = async function(url, options) {
                 };
                 
                 
-        async function procesarGeneracionPdfCarnets() {
+        async function procesarGeneracionPdfCarnets(dnisFilter = null) {
             const btn = document.getElementById('btn-generar-pdf-carnets');
             const originalText = btn.innerHTML;
-            const institucion = document.getElementById('filtro-pdf-institucion').value;
+            const institucion = document.getElementById('filtro-pdf-institucion') ? document.getElementById('filtro-pdf-institucion').value : 'TODOS';
             
             let jugadores = allData;
-            if (institucion !== 'TODOS') {
+            if (dnisFilter && dnisFilter.length > 0) {
+                jugadores = allData.filter(j => dnisFilter.includes(j.dni));
+            } else if (institucion !== 'TODOS') {
                 jugadores = allData.filter(j => j.institucion === institucion);
             }
             
@@ -3446,7 +3565,8 @@ window.fetch = async function(url, options) {
                 
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                bootstrap.Modal.getInstance(document.getElementById('modalGenerarPdfCarnets')).hide();
+                const pdfModal = bootstrap.Modal.getInstance(document.getElementById('modalGenerarPdfCarnets'));
+                if (pdfModal) pdfModal.hide();
                 Swal.fire('¡Éxito!', 'El PDF se ha generado correctamente.', 'success');
                 
             } catch (err) {
