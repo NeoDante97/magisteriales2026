@@ -988,16 +988,24 @@ function togglePassword() {
                 <div class="card shadow border-0">
                     <div class="card-body p-4">
                         <div class="row align-items-end mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-7">
                                 <div id="filter-container">
-                                    <label id="institucionFilterLabel" class="form-label fw-bold">Filtrar por Institución Educativa</label>
-                                    <select id="institucionFilter" class="form-select border-2">
-                                        <option value="">Cargando instituciones...</option>
-                                    </select>
-                                    <h4 id="delegadoInstitucionLabel" class="text-center fw-bold text-primary mt-2" style="display: none;"></h4>
+                                    <div class="row g-2">
+                                        <div class="col-12 col-md-6" id="institucion-filter-wrapper">
+                                            <label id="institucionFilterLabel" class="form-label fw-bold">Filtrar por Institución Educativa</label>
+                                            <select id="institucionFilter" class="form-select border-2">
+                                                <option value="">Cargando instituciones...</option>
+                                            </select>
+                                            <h4 id="delegadoInstitucionLabel" class="text-center fw-bold text-primary mt-2" style="display: none;"></h4>
+                                        </div>
+                                        <div class="col-12 col-md-6" id="nombre-filter-wrapper">
+                                            <label id="nombreFilterLabel" class="form-label fw-bold">Buscar por Nombre Completo</label>
+                                            <input type="text" id="nombreFilter" class="form-control border-2" placeholder="Escribe para buscar...">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 text-md-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end">
+                            <div class="col-md-5 text-md-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end">
                                 <button id="btn-show-modal-generar-pdf" class="btn btn-warning fw-bold text-dark" onclick="abrirModalGenerarPDF()">
                                     <i class="fas fa-id-badge"></i> Generar Carnet
                                 </button>
@@ -1552,6 +1560,44 @@ function togglePassword() {
 </div>
 
     <script>
+        const idbStorage = {
+            db: null,
+            init() {
+                return new Promise((resolve, reject) => {
+                    if (this.db) return resolve();
+                    const req = indexedDB.open('JuegosMagisterialesDB', 1);
+                    req.onupgradeneeded = e => {
+                        if (!e.target.result.objectStoreNames.contains('cache')) {
+                            e.target.result.createObjectStore('cache');
+                        }
+                    };
+                    req.onsuccess = e => {
+                        this.db = e.target.result;
+                        resolve();
+                    };
+                    req.onerror = e => reject(e);
+                });
+            },
+            async set(key, val) {
+                await this.init();
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('cache', 'readwrite');
+                    tx.objectStore('cache').put(val, key);
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = e => reject(e);
+                });
+            },
+            async get(key) {
+                await this.init();
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('cache', 'readonly');
+                    const req = tx.objectStore('cache').get(key);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = e => reject(e);
+                });
+            }
+        };
+
         // ==========================================
         // URL GLOBAL DE APPS SCRIPT
         // ==========================================
@@ -1654,7 +1700,8 @@ window.fetch = async function(url, options) {
 
         let dnisRegistradosGlobal = [];
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
+            await idbStorage.init().catch(console.error);
             const urlParams = new URLSearchParams(window.location.search);
             if(urlParams.has('scan')) {
                 const dniScan = urlParams.get('scan');
@@ -2482,20 +2529,29 @@ window.fetch = async function(url, options) {
             .then(results => {
                 if (interval) clearInterval(interval);
 
-                const onDataLoaded = () => {
+                const onDataLoaded = async () => {
                     const [dataRes, configRes, delRes, instRes] = results;
                     
-                    if(dataRes.status === 'success') allData = Array.isArray(dataRes.data) ? dataRes.data : [];
-                    else allData = [];
+                    if(dataRes.status === 'success') {
+                        allData = Array.isArray(dataRes.data) ? dataRes.data : [];
+                        await idbStorage.set('cached_allData', JSON.stringify(allData));
+                    } else {
+                        allData = [];
+                    }
                     
-                    if(configRes.status === 'success') configData = configRes.config || configData;
+                    if(configRes.status === 'success') {
+                        configData = configRes.config || configData;
+                        await idbStorage.set('cached_configData', JSON.stringify(configData));
+                    }
                     
                     if(delRes.status === 'success') {
                         allDelegados = delRes.data;
+                        await idbStorage.set('cached_allDelegados', JSON.stringify(allDelegados));
                         renderTablaDelegados(allDelegados);
                     }
                     if(instRes.status === 'success') {
                         allInstituciones = instRes.data;
+                        await idbStorage.set('cached_allInstituciones', JSON.stringify(allInstituciones));
                         renderTablaInstituciones(allInstituciones);
                         actualizarSelectsInstituciones();
                     }
@@ -2755,12 +2811,15 @@ window.fetch = async function(url, options) {
             const select = document.getElementById('institucionFilter');
             const label = document.getElementById('institucionFilterLabel');
             const delegLabel = document.getElementById('delegadoInstitucionLabel');
+            const nombreInput = document.getElementById('nombreFilter');
+            const nombreWrapper = document.getElementById('nombre-filter-wrapper');
             const instituciones = [...new Set(allData.map(item => item.institucion))];
             
             select.innerHTML = '';
             if (currentAdminRol === 'Delegado') {
                 if(label) label.style.display = 'none';
                 if(select) select.style.display = 'none';
+                if(nombreWrapper) nombreWrapper.style.display = 'none';
                 if(delegLabel) {
                     delegLabel.style.display = 'block';
                     delegLabel.innerHTML = '<i class="fas fa-school"></i> ' + currentAdminInstitucion;
@@ -2768,6 +2827,7 @@ window.fetch = async function(url, options) {
             } else {
                 if(label) label.style.display = 'block';
                 if(select) select.style.display = 'block';
+                if(nombreWrapper) nombreWrapper.style.display = 'block';
                 if(delegLabel) delegLabel.style.display = 'none';
 
                 select.innerHTML = '<option value="TODAS">TODAS LAS INSTITUCIONES</option>';
@@ -2780,17 +2840,50 @@ window.fetch = async function(url, options) {
                 select.disabled = false;
             }
 
-            select.addEventListener('change', (e) => {
-                const val = e.target.value;
-                if(val === 'TODAS') {
-                    renderTabla(allData);
+            const aplicarFiltrosJugadores = () => {
+                let filtrados = allData;
+                
+                if (currentAdminRol === 'Delegado') {
+                    const userInsts = currentAdminInstitucion ? currentAdminInstitucion.split(',').map(s => s.trim().toLowerCase()) : [];
+                    filtrados = filtrados.filter(x => userInsts.includes(String(x.institucion).trim().toLowerCase()));
                 } else {
-                    const instLower = String(val).trim().toLowerCase();
-                    renderTabla(allData.filter(x => String(x.institucion).trim().toLowerCase() === instLower));
+                    const elSelect = document.getElementById('institucionFilter');
+                    const elNombre = document.getElementById('nombreFilter');
+                    
+                    if (elSelect && elSelect.value && elSelect.value !== 'TODAS') {
+                        const instLower = String(elSelect.value).trim().toLowerCase();
+                        filtrados = filtrados.filter(x => String(x.institucion).trim().toLowerCase() === instLower);
+                    }
+                    
+                    if (elNombre && elNombre.value.trim() !== '') {
+                        const valNombre = elNombre.value.trim().toLowerCase();
+                        filtrados = filtrados.filter(x => String(x.nombres).toLowerCase().includes(valNombre));
+                    }
                 }
-            });
+                
+                renderTabla(filtrados);
+            };
+
+            const newSelect = select.cloneNode(true);
+            const valSel = select.value;
+            select.parentNode.replaceChild(newSelect, select);
+            newSelect.value = valSel;
+            newSelect.addEventListener('change', aplicarFiltrosJugadores);
+            
+            if (nombreInput) {
+                const val = nombreInput.value;
+                const newNombreInput = nombreInput.cloneNode(true);
+                nombreInput.parentNode.replaceChild(newNombreInput, nombreInput);
+                newNombreInput.value = val;
+                newNombreInput.addEventListener('input', aplicarFiltrosJugadores);
+            }
+            
+            // To ensure filters persist visually even if renderTabla(allData) is called right after by the caller
+            setTimeout(aplicarFiltrosJugadores, 50);
         }
 
+        let jugadoresSeleccionados = new Set();
+        
         function renderTabla(datos) {
             const tbody = document.getElementById('tabla-body');
             tbody.innerHTML = '';
@@ -2822,7 +2915,7 @@ window.fetch = async function(url, options) {
                     <tr>
                         ${currentAdminRol !== 'Delegado' ? `
                         <td>
-                            <input type="checkbox" class="form-check-input row-checkbox" value="${row.dni}" onchange="toggleRowSelection()">
+                            <input type="checkbox" class="form-check-input row-checkbox" value="${row.dni}" onchange="toggleRowSelection(this)" ${typeof jugadoresSeleccionados !== 'undefined' && jugadoresSeleccionados.has(row.dni) ? 'checked' : ''}>
                         </td>
                         ` : ''}
                         <td class="fw-bold">${row.dni}</td>
@@ -2845,33 +2938,50 @@ window.fetch = async function(url, options) {
             });
             tbody.innerHTML = htmlRows;
             
-            // Reset select all checkbox
+            // Reset select all checkbox to match current visible rows
             const selectAllCb = document.getElementById('selectAllCheckbox');
-            if(selectAllCb) selectAllCb.checked = false;
+            const rowCbs = document.querySelectorAll('.row-checkbox');
+            if(selectAllCb) {
+                if(rowCbs.length > 0) {
+                    selectAllCb.checked = Array.from(rowCbs).every(c => c.checked);
+                } else {
+                    selectAllCb.checked = false;
+                }
+            }
             actualizarBotonesMultiples();
         }
 
         function toggleSelectAll() {
             const selectAllCb = document.getElementById('selectAllCheckbox');
             const rowCbs = document.querySelectorAll('.row-checkbox');
-            rowCbs.forEach(cb => cb.checked = selectAllCb.checked);
+            rowCbs.forEach(cb => {
+                cb.checked = selectAllCb.checked;
+                if (selectAllCb.checked) {
+                    jugadoresSeleccionados.add(cb.value);
+                } else {
+                    jugadoresSeleccionados.delete(cb.value);
+                }
+            });
             actualizarBotonesMultiples();
         }
 
-        function toggleRowSelection() {
+        function toggleRowSelection(cb) {
+            if (cb.checked) {
+                jugadoresSeleccionados.add(cb.value);
+            } else {
+                jugadoresSeleccionados.delete(cb.value);
+            }
             const selectAllCb = document.getElementById('selectAllCheckbox');
             const rowCbs = document.querySelectorAll('.row-checkbox');
-            const allChecked = Array.from(rowCbs).length > 0 && Array.from(rowCbs).every(cb => cb.checked);
+            const allChecked = Array.from(rowCbs).length > 0 && Array.from(rowCbs).every(c => c.checked);
             if(selectAllCb) selectAllCb.checked = allChecked;
             actualizarBotonesMultiples();
         }
 
         function actualizarBotonesMultiples() {
-            const rowCbs = document.querySelectorAll('.row-checkbox');
-            const anyChecked = Array.from(rowCbs).some(cb => cb.checked);
             const container = document.getElementById('acciones-multiples-container');
             if(container) {
-                if (anyChecked) {
+                if (jugadoresSeleccionados.size > 0) {
                     container.style.setProperty('display', 'flex', 'important');
                 } else {
                     container.style.setProperty('display', 'none', 'important');
@@ -2880,8 +2990,7 @@ window.fetch = async function(url, options) {
         }
 
         function obtenerDnisSeleccionados() {
-            const rowCbs = document.querySelectorAll('.row-checkbox:checked');
-            return Array.from(rowCbs).map(cb => cb.value);
+            return Array.from(jugadoresSeleccionados);
         }
 
         async function eliminarSeleccionados() {
@@ -2916,6 +3025,7 @@ window.fetch = async function(url, options) {
                     const result = await response.json();
                     if (result.success) {
                         eliminados++;
+                        jugadoresSeleccionados.delete(dni);
                     } else {
                         errores++;
                     }
@@ -3690,10 +3800,122 @@ function renderLogos(logos) {
         // LÓGICA LOGIN
         // ==========================================
         let loginInterval = null;
+        async function procesarLoginExitoso(data, dni, pass, tipo, isCached) {
+            if (loginInterval) { clearInterval(loginInterval); loginInterval = null; }
+            const loadingOverlay = document.getElementById('loading');
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
+
+            currentAdminRol = data.rol || tipo;
+            currentAdminInstitucion = (data.institucion || '').trim();
+            currentAdminDni = dni;
+            currentAdminLlave = data.llave || "VER";
+            document.getElementById('admin-name').innerText = data.nombre + (currentAdminRol === 'Delegado' ? ' (Delegado - ' + currentAdminInstitucion + ')' : ' (' + currentAdminRol + ')');
+            configurarVistaPorRol();
+            
+            if (currentAdminRol === 'Delegado') {
+                let permisos = {};
+                try { 
+                    let parsed = JSON.parse(currentAdminLlave); 
+                    if(parsed && typeof parsed === 'object') permisos = parsed;
+                } catch(e) {}
+                
+                const tabs = ['jugadores', 'graficos', 'configuracion', 'administradores', 'delegados', 'instituciones'];
+                let tabToShow = null;
+                for(let t of tabs) {
+                    const p = permisos[t] || 'N';
+                    if(p !== 'N' && p !== 'OCULTAR') {
+                        tabToShow = t;
+                        break;
+                    }
+                }
+                
+                if (tabToShow) {
+                    showTab(tabToShow);
+                } else {
+                    showTab('no-access');
+                }
+            }
+            
+            document.getElementById('view-registro').style.display = 'none';
+            document.getElementById('view-login').style.display = 'none';
+            document.getElementById('view-admin').style.display = 'block';
+            if(document.getElementById('view-scanner')) document.getElementById('view-scanner').style.display = 'none';
+
+            if (isCached) {
+                try {
+                    const cData = await idbStorage.get('cached_allData');
+                    if(cData) allData = JSON.parse(cData);
+                    const cInst = await idbStorage.get('cached_allInstituciones');
+                    if(cInst) allInstituciones = JSON.parse(cInst);
+                    const cDel = await idbStorage.get('cached_allDelegados');
+                    if(cDel) allDelegados = JSON.parse(cDel);
+                    const cConf = await idbStorage.get('cached_configData');
+                    if(cConf) configData = JSON.parse(cConf);
+
+                    actualizarFiltro();
+                    if (currentAdminRol === 'Delegado') {
+                        const userInsts = currentAdminInstitucion ? currentAdminInstitucion.split(',').map(s => s.trim().toLowerCase()) : [];
+                        renderTabla(allData.filter(x => userInsts.includes(String(x.institucion).trim().toLowerCase())));
+                    } else {
+                        renderTabla(allData);
+                    }
+                    renderGraficos();
+                    if(allDelegados && allDelegados.length > 0) renderTablaDelegados(allDelegados);
+                    if(allInstituciones && allInstituciones.length > 0) {
+                        renderTablaInstituciones(allInstituciones);
+                        actualizarSelectsInstituciones();
+                    }
+                } catch (e) { console.error('Error reading cache', e); }
+                
+                // Fetch silently in background
+                cargarDatos(true);
+
+                // Silently verify credentials
+                fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    silent: true,
+                    body: JSON.stringify({ action: 'login', dni: dni, password: pass, tipoAdmin: tipo })
+                }).then(r => r.json()).then(resData => {
+                    if (resData.status === 'success') {
+                        const cacheKey = `login_${dni}_${pass}_${tipo}`;
+                        localStorage.setItem(cacheKey, JSON.stringify(resData));
+                        
+                        let changed = false;
+                        if (currentAdminRol !== (resData.rol || tipo)) changed = true;
+                        if (currentAdminLlave !== (resData.llave || "VER")) changed = true;
+                        
+                        if (changed) {
+                             currentAdminRol = resData.rol || tipo;
+                             currentAdminLlave = resData.llave || "VER";
+                             configurarVistaPorRol();
+                        }
+                    } else {
+                        cerrarSesion();
+                        Swal.fire('Sesión Caducada', 'Tus credenciales han cambiado o fueron eliminadas. Vuelve a iniciar sesión.', 'warning');
+                    }
+                }).catch(e => console.log('Silent login check failed', e));
+
+            } else {
+                cargarDatos(false);
+            }
+        }
+
         function realizarLogin() {
             const dni = document.getElementById('login_dni').value;
             const pass = document.getElementById('login_pass').value;
             const tipo = document.getElementById('login_tipo').value;
+            
+            const cacheKey = `login_${dni}_${pass}_${tipo}`;
+            const cachedLoginStr = localStorage.getItem(cacheKey);
+            if (cachedLoginStr) {
+                try {
+                    const cachedData = JSON.parse(cachedLoginStr);
+                    procesarLoginExitoso(cachedData, dni, pass, tipo, true);
+                    return; // Skip fetch, fast login done
+                } catch(e) {}
+            }
 
             const loadingOverlay = document.getElementById('loading');
             if (loadingOverlay) {
@@ -3722,43 +3944,12 @@ function renderLogos(logos) {
             })
             .then(res => res.json())
             .then(data => {
-                if (loginInterval) { clearInterval(loginInterval); loginInterval = null; }
-                if (loadingOverlay) loadingOverlay.style.display = 'none';
                 if (data.status === 'success') {
-                    currentAdminRol = data.rol || tipo;
-                    currentAdminInstitucion = (data.institucion || '').trim();
-                    currentAdminDni = dni;
-                    currentAdminLlave = data.llave || "VER";
-                    document.getElementById('admin-name').innerText = data.nombre + (currentAdminRol === 'Delegado' ? ' (Delegado - ' + currentAdminInstitucion + ')' : ' (' + currentAdminRol + ')');
-                    configurarVistaPorRol();
-                    
-                    if (currentAdminRol === 'Delegado') {
-                        let permisos = {};
-                        try { 
-                            let parsed = JSON.parse(currentAdminLlave); 
-                            if(parsed && typeof parsed === 'object') permisos = parsed;
-                        } catch(e) {}
-                        
-                        // Encontrar la primera pestaña que no esté oculta para mostrarla
-                        const tabs = ['jugadores', 'graficos', 'configuracion', 'administradores', 'delegados', 'instituciones'];
-                        let tabToShow = null;
-                        for(let t of tabs) {
-                            const p = permisos[t] || 'N';
-                            if(p !== 'N' && p !== 'OCULTAR') {
-                                tabToShow = t;
-                                break;
-                            }
-                        }
-                        
-                        if (tabToShow) {
-                            showTab(tabToShow);
-                        } else {
-                            showTab('no-access');
-                        }
-                    }
-                    
-                    switchView('admin');
+                    localStorage.setItem(cacheKey, JSON.stringify(data));
+                    procesarLoginExitoso(data, dni, pass, tipo, false);
                 } else {
+                    if (loginInterval) { clearInterval(loginInterval); loginInterval = null; }
+                    if (loadingOverlay) loadingOverlay.style.display = 'none';
                     Swal.fire('Acceso Denegado', data.message || 'Credenciales incorrectas.', 'error');
                 }
             })
