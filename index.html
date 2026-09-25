@@ -2492,6 +2492,50 @@ window.fetch = async function(url, options) {
         }
 
         let hasLoadedOnce = false;
+        async function prefetchResources() {
+            // Logos
+            if (configData && configData.logos) {
+                for (let l of configData.logos) {
+                    if (!l.base64Url) {
+                        let m = l.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                        let actualId = m ? (m[1] || m[2]) : null;
+                        let s = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : l.url;
+                        try {
+                            let res = await fetch(scriptURL, {
+                                method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' },
+                                body: JSON.stringify({ action: 'obtenerBase64', url: s }), silent: true
+                            }).then(r => r.json());
+                            if (res && res.status === 'success' && res.base64) {
+                                l.base64Url = res.base64;
+                            }
+                        } catch(e) {}
+                    }
+                }
+                try { idbStorage.set('cached_configData', JSON.stringify(configData)); } catch(e){}
+            }
+            // Fotos
+            if (allData && allData.length > 0) {
+                const faltantes = allData.filter(j => j.tieneFoto && !j.fotoBase64);
+                if (faltantes.length > 0) {
+                    const batchSize = 10;
+                    for (let i = 0; i < faltantes.length; i += batchSize) {
+                        const lote = faltantes.slice(i, i + batchSize);
+                        await Promise.all(lote.map(async j => {
+                            try {
+                                let res = await fetch(scriptURL, {
+                                    method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' },
+                                    body: JSON.stringify({ action: 'get_foto', dni: j.dni }), silent: true
+                                }).then(r => r.json());
+                                if (res && res.status === 'success' && res.fotoBase64) {
+                                    j.fotoBase64 = res.fotoBase64;
+                                }
+                            } catch(e) {}
+                        }));
+                    }
+                    try { idbStorage.set('cached_allData', JSON.stringify(allData)); } catch(e){}
+                }
+            }
+        }
         function cargarDatos(silent = false) {
             const loadingOverlay = document.getElementById('loading');
             const wave = document.getElementById('liquid-wave-anim');
@@ -2596,10 +2640,12 @@ window.fetch = async function(url, options) {
                         loadingOverlay.style.display = 'none';
                         hasLoadedOnce = true;
                         onDataLoaded();
+                        prefetchResources();
                     }, 500);
                 } else {
                     if (!silent) loadingOverlay.style.display = 'none';
                     onDataLoaded();
+                    prefetchResources();
                 }
             })
             .catch(err => {
@@ -3416,7 +3462,7 @@ window.fetch = async function(url, options) {
                     try {
                         let res = await fetch(scriptURL, {
                             method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' },
-                            body: JSON.stringify({ action: 'obtenerBase64', url: url })
+                            body: JSON.stringify({ action: 'obtenerBase64', url: url }), silent: true
                         }).then(r => r.json());
                         if (res.status === 'success' && res.base64) return res.base64;
                     } catch(e) { console.error('Error fetching base64 for', url, e); }
@@ -3476,24 +3522,28 @@ window.fetch = async function(url, options) {
                 const logoPrinc = configData.logos && configData.logos.find(l => l.institucion === 'PRINCIPAL');
                 let srcPrinc = '';
                 if(logoPrinc) {
-                    let m = logoPrinc.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
-                    let actualId = m ? (m[1] || m[2]) : null;
-                    srcPrinc = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : logoPrinc.url;
-                }
-                
-                if (srcPrinc) {
-                    Swal.update({ html: 'Cargando logo principal...' });
-                    srcPrinc = await imageToBase64(srcPrinc);
+                    if (logoPrinc.base64Url) {
+                        srcPrinc = logoPrinc.base64Url;
+                    } else {
+                        let m = logoPrinc.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                        let actualId = m ? (m[1] || m[2]) : null;
+                        srcPrinc = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : logoPrinc.url;
+                        Swal.update({ html: 'Cargando logo principal...' });
+                        srcPrinc = await imageToBase64(srcPrinc);
+                        logoPrinc.base64Url = srcPrinc;
+                    }
                 }
                 
                 let cachedLogoSec = configData.logos ? configData.logos.filter(l => l.institucion !== 'PRINCIPAL') : [];
-                Swal.update({ html: 'Cargando logos secundarios...' });
                 for (let j = 0; j < cachedLogoSec.length; j++) {
                     let l = cachedLogoSec[j];
-                    let m = l.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
-                    let actualId = m ? (m[1] || m[2]) : null;
-                    let s = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : l.url;
-                    cachedLogoSec[j].base64Url = await imageToBase64(s);
+                    if (!l.base64Url) {
+                        Swal.update({ html: 'Cargando logos secundarios...' });
+                        let m = l.url.match(/id=([-\w]{25,})|\/d\/([-\w]{25,})/);
+                        let actualId = m ? (m[1] || m[2]) : null;
+                        let s = actualId ? `https://lh3.googleusercontent.com/d/${actualId}=w400` : l.url;
+                        l.base64Url = await imageToBase64(s);
+                    }
                 }
 
                 const otherLogosHtml = `
@@ -5007,43 +5057,58 @@ async function abrirModalCambiarPassword() {
         let html5QrcodeScannerGlobal = null;
         let globalScanData = []; // Cache to store data for scanner
         
-        function abrirScannerGlobal() {
+        async function abrirScannerGlobal() {
             Swal.fire({ title: 'Cargando datos...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
-            let promises = [];
-            
-            if (globalScanData.length === 0 && allData.length === 0) {
-                promises.push(fetch(scriptURL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'get_all' }) }).then(r => r.json()));
-            } else {
-                promises.push(Promise.resolve({ status: 'success', data: (allData.length > 0 ? allData : globalScanData) }));
-            }
-            
-            if (!configData || !configData.logos) {
-                promises.push(fetch(scriptURL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'get_config' }) }).then(r => r.json()));
-            } else {
-                promises.push(Promise.resolve({ status: 'success', config: configData }));
-            }
+            try {
+                if (globalScanData.length === 0 && allData.length === 0) {
+                    const cData = await idbStorage.get('cached_allData');
+                    if (cData) globalScanData = JSON.parse(cData);
+                } else if (allData.length > 0) {
+                    globalScanData = allData;
+                }
+                
+                if (!configData || !configData.logos) {
+                    const cConf = await idbStorage.get('cached_configData');
+                    if (cConf) configData = JSON.parse(cConf);
+                }
 
-            Promise.all(promises).then(results => {
+                let promises = [];
+                if (globalScanData.length === 0) {
+                    promises.push(fetch(scriptURL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'get_all' }) }).then(r => r.json()));
+                } else {
+                    promises.push(Promise.resolve({ status: 'success', data: globalScanData }));
+                }
+                
+                if (!configData || !configData.logos) {
+                    promises.push(fetch(scriptURL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'get_config' }) }).then(r => r.json()));
+                } else {
+                    promises.push(Promise.resolve({ status: 'success', config: configData }));
+                }
+                
+                const results = await Promise.all(promises);
                 Swal.close();
+                
                 const res = results[0];
                 const confRes = results[1];
                 
-                if(confRes.status === 'success') {
+                if (confRes.status === 'success') {
                     configData = confRes.config || configData;
+                    try { idbStorage.set('cached_configData', JSON.stringify(configData)); } catch(e){}
                     renderLogos(configData.logos || []);
                 }
-
-                if(res.status === 'success') {
+                
+                if (res.status === 'success') {
                     globalScanData = res.data;
+                    try { idbStorage.set('cached_allData', JSON.stringify(globalScanData)); } catch(e){}
                     mostrarModalScannerGlobal();
                 } else {
                     Swal.fire('Error', 'No se pudieron cargar los datos', 'error');
                 }
-            }).catch(e => {
+            } catch(e) {
                 Swal.close();
                 Swal.fire('Error', 'Problema de red: ' + e, 'error');
-            });
+            }
         }
         
         function mostrarModalScannerGlobal() {
