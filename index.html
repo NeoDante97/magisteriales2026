@@ -1989,17 +1989,14 @@ window.fetch = async function(url, options) {
                     });
                 }
 
-                // Usamos nuestro propio backend (Apps Script) como proxy para evitar errores de CORS
-                fetch(scriptURL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'search_dni', dni: dni })
-                })
+                // Buscar DNI de manera rápida usando API pública
+                fetch(`https://api.apis.net.pe/v1/dni?numero=${dni}`)
                     .then(response => {
                         if (!response.ok) throw new Error('Error en el servidor');
                         return response.json();
                     })
                     .then(data => {
-                        if (data.status === 'success' && data.nombre) {
+                        if (data && data.nombre) {
                             msgDiv.style.display = 'block';
                             msgDiv.style.color = 'var(--success-color)';
                             msgDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.nombre;
@@ -2022,9 +2019,15 @@ window.fetch = async function(url, options) {
             }
         });
 
+        let isSubmittingRegistro = false;
         document.getElementById('registroForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            if (isSubmittingRegistro) return;
+            isSubmittingRegistro = true;
+            
+            const releaseSubmit = () => { isSubmittingRegistro = false; };
+
             // Check if inscripciones are enabled
             const inscripcionesActivas = (configData.inscripciones !== false && String(configData.inscripciones).toLowerCase() !== 'false');
             if (!inscripcionesActivas) {
@@ -2034,6 +2037,7 @@ window.fetch = async function(url, options) {
                     text: 'LAS INSCRIPCIONES FINALIZARON',
                     confirmButtonColor: '#d33'
                 });
+                releaseSubmit();
                 return;
             }
 
@@ -2050,6 +2054,7 @@ window.fetch = async function(url, options) {
                     text: 'El DNI debe tener exactamente 8 números.',
                     confirmButtonColor: '#ffaa00'
                 });
+                releaseSubmit();
                 return;
             }
 
@@ -2061,6 +2066,7 @@ window.fetch = async function(url, options) {
                     text: 'Debes seleccionar al menos un deporte en el que vas a participar.',
                     confirmButtonColor: '#ffaa00'
                 });
+                releaseSubmit();
                 return;
             }
             const deportesSeleccionados = Array.from(deportesCheckboxes).map(cb => cb.value).join(', ');
@@ -2073,6 +2079,7 @@ window.fetch = async function(url, options) {
                         text: 'Es obligatorio tomarte o adjuntar una foto para tu carnet.',
                         confirmButtonColor: '#ffaa00'
                     });
+                    releaseSubmit();
                     return;
                 }
                 
@@ -2083,6 +2090,7 @@ window.fetch = async function(url, options) {
                         text: 'Es obligatorio adjuntar tu archivo en formato PDF.',
                         confirmButtonColor: '#ffaa00'
                     });
+                    releaseSubmit();
                     return;
                 }
             }
@@ -2094,6 +2102,7 @@ window.fetch = async function(url, options) {
                     text: 'El archivo de foto debe ser una imagen.',
                     confirmButtonColor: '#d33'
                 });
+                releaseSubmit();
                 return;
             }
             
@@ -2104,6 +2113,7 @@ window.fetch = async function(url, options) {
                     text: 'Solo se permiten archivos en formato PDF.',
                     confirmButtonColor: '#d33'
                 });
+                releaseSubmit();
                 return;
             }
 
@@ -2251,6 +2261,8 @@ window.fetch = async function(url, options) {
                                 }
                                 cargarDatos(true);
                             }
+                            
+                            releaseSubmit(); // Permitir nuevos registros
                         
                         } else if (data.status === 'duplicate' && !window.modoEdicionAdmin) {
                             // DNI DUPLICADO - MOSTRAR OPCIÓN DE ACTUALIZAR (solo si no estamos ya en modo edición)
@@ -2266,6 +2278,8 @@ window.fetch = async function(url, options) {
                             }).then((result) => {
                                 if (result.isConfirmed) {
                                     sendToServer('update'); // Enviar nuevamente pero en modo actualización
+                                } else {
+                                    releaseSubmit(); // Cancelado, liberar botón
                                 }
                             });
 
@@ -2278,10 +2292,12 @@ window.fetch = async function(url, options) {
                                 confirmButtonColor: '#d33',
                                 confirmButtonText: 'Entendido'
                             });
+                            releaseSubmit(); // Liberar botón
                         }
                     })
                     .catch(error => {
                         loadingOverlay.style.display = 'none';
+                        releaseSubmit();
                         Swal.fire({
                             icon: 'error',
                             title: 'Error de Conexión',
@@ -2296,6 +2312,7 @@ window.fetch = async function(url, options) {
                 sendToServer('register');
             }).catch(err => {
                 loadingOverlay.style.display = 'none';
+                releaseSubmit();
                 Swal.fire({
                     icon: 'error',
                     title: 'Error de Archivos',
@@ -3428,7 +3445,27 @@ window.fetch = async function(url, options) {
             btn.disabled = true;
             Swal.fire({ title: 'Preparando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             try {
-                                const pdfContainer = document.createElement('div');
+                const faltantes = jugadores.filter(j => j.tieneFoto && !j.fotoBase64);
+                if (faltantes.length > 0) {
+                    const batchSize = 10;
+                    for (let i = 0; i < faltantes.length; i += batchSize) {
+                        Swal.update({ html: `Descargando fotos (${Math.min(i+batchSize, faltantes.length)} de ${faltantes.length})...` });
+                        const lote = faltantes.slice(i, i + batchSize);
+                        await Promise.all(lote.map(async j => {
+                            try {
+                                let res = await fetch(scriptURL, {
+                                    method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' },
+                                    body: JSON.stringify({ action: 'get_foto', dni: j.dni }), silent: true
+                                }).then(r => r.json());
+                                if (res.status === 'success' && res.fotoBase64) {
+                                    j.fotoBase64 = res.fotoBase64;
+                                }
+                            } catch(e) {}
+                        }));
+                    }
+                    try { idbStorage.set('cached_allData', JSON.stringify(allData)); } catch(e){}
+                }
+                const pdfContainer = document.createElement('div');
                 pdfContainer.style.background = '#fff';
                 pdfContainer.style.width = '210mm';
                 pdfContainer.style.boxSizing = 'border-box';
@@ -3498,11 +3535,10 @@ window.fetch = async function(url, options) {
                     }
                     
                     if (jugador.tieneFoto && !jugador.fotoBase64) {
-                        Swal.update({ html: `Descargando foto ${i+1} de ${jugadores.length}...` });
                         try {
                             let res = await fetch(scriptURL, {
                                 method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' },
-                                body: JSON.stringify({ action: 'get_foto', dni: jugador.dni })
+                                body: JSON.stringify({ action: 'get_foto', dni: jugador.dni }), silent: true
                             }).then(r => r.json());
                             if (res.status === 'success' && res.fotoBase64) {
                                 jugador.fotoBase64 = res.fotoBase64;
@@ -4100,7 +4136,7 @@ async function abrirModalCambiarPassword() {
                 try {
                     let res = await fetch(scriptURL, {
                         method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' },
-                        body: JSON.stringify({ action: 'get_foto', dni: dni })
+                        body: JSON.stringify({ action: 'get_foto', dni: dni }), silent: true
                     }).then(r => r.json());
                     if (res.status === 'success' && res.fotoBase64) {
                         jugador.fotoBase64 = res.fotoBase64;
@@ -5090,7 +5126,7 @@ async function abrirModalCambiarPassword() {
                     try {
                         let res = await fetch(scriptURL, {
                             method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain' },
-                            body: JSON.stringify({ action: 'get_foto', dni: dni })
+                            body: JSON.stringify({ action: 'get_foto', dni: dni }), silent: true
                         }).then(r => r.json());
                         if (res.status === 'success' && res.fotoBase64) {
                             jugador.fotoBase64 = res.fotoBase64;
